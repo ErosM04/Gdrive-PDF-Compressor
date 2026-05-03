@@ -5,6 +5,7 @@ __pycache__/
 
 # Files
 google-cloud-credentials.txt
+credentials.json
 
 # C extensions
 *.so
