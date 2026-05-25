@@ -3,9 +3,11 @@ __pycache__/
 *.py[codz]
 *$py.class
 
-# Files
-google-cloud-credentials.txt
+# Custom Files and Direcotries to ignore
 credentials.json
+token.json
+
+downloads
 
 # C extensions
 *.so
