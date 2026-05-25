@@ -6,7 +6,7 @@ __pycache__/
 # Custom Files and Direcotries to ignore
 credentials.json
 token.json
-
+folder_ids.json
 downloads
 
 # C extensions
