@@ -12,8 +12,7 @@ Python script to retrive PDF files from a Google Drive folder and then compress 
 
 ## TODO
 - [X] Clean download and compressed folders with ``-c``
-- [ ] Asynchronous download and compression
-    - [ ] is default, or use ``-s`` for sync
+- [X] Asynchronous download and compression
 - [X] Recursive search: explore folders in current directory
     - [X] use ``-r`` to specify recurse until bottom of subfolders tree
     - [X] use ``--rd [n]`` where n is a prameter used to specify the max depth of the subfolders tree, e.g. n=3 opens up to 3 consecutive subfolders
