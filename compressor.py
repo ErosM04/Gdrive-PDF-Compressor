@@ -10,7 +10,7 @@ from compression_data import CompressionData
 print_lock = threading.Lock()
 
 
-def compress_pdf_ghostscript(input_path, output_path):
+def compress_pdf_ghostscript(input_path, output_path, start_spacing):
     """Compresses a PDF file using Ghostscript in a background thread.
     If the compression succeded returns the informations regarding the compression."""
     # Note: If you are on Windows, change "gs" to "gswin64c"
@@ -42,15 +42,19 @@ def compress_pdf_ghostscript(input_path, output_path):
                                    original_size= round((os.path.getsize(input_path) / 1024), 2),
                                    compressed_size=round((os.path.getsize(output_path) / 1024), 2),
                                    compression_duration= time.time() - start,
-                                   success=True)
+                                   success=True,
+                                   start_spacing=start_spacing+"  ")
         
     except subprocess.CalledProcessError as e:
         return CompressionData(file_name=os.path.basename(output_path),
                                    original_size= round((os.path.getsize(input_path) / 1024), 2),
                                    compression_duration= time.time() - start,
                                    success=False,
-                                   error_message=e)
+                                   error_message=e,
+                                   start_spacing=start_spacing+"  ")
+
     except FileNotFoundError:
         return CompressionData(file_name=os.path.basename(output_path),
                                    success=False,
-                                   error_message=e)
+                                   error_message=e,
+                                   start_spacing=start_spacing+"  ")

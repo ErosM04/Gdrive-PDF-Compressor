@@ -17,7 +17,7 @@ FOLDER_IDS_LOCATION = "folder_ids.json"
 def read_folders_ids(location):
     """Reads a JSON file containg all the folder IDs"""
     if not os.path.exists(location) and os.path.getsize(location) > 0:
-        print(f"File '{location}' not found or empty.")
+        print(f"Folder IDs file '{location}' not found or empty.")
         return
     
     data = None
@@ -26,7 +26,7 @@ def read_folders_ids(location):
             data = json.load(file)
 
         except json.JSONDecodeError:
-            print(f"The '{location}' file exists but does not contain a valid JSON.")
+            print(f"The folder IDs file '{location}' exists but does not contain a valid JSON.")
             return
 
     if not data or not data["ids"]:
@@ -49,6 +49,8 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
 
     # Setup Google Drive service
     service = build('drive', 'v3', credentials=authenticate_gdrive())
+
+    future_list = []
     
     # Set up the Thread Pool
     # max_workers=4 allows up to 4 PDFs to be compressed simultaneously.
@@ -58,11 +60,11 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
             try:
                 folder_metadata = service.files().get(fileId=folder_id, fields="name").execute()
                 root_folder_name = folder_metadata.get('name', 'Unknown Folder')
-                print(f"\n📁 Target Google Drive Folder: {root_folder_name}")
+                print(f"\n\n📁 Target Google Drive Folder: '{root_folder_name}'")
             except Exception as e:
-                print(f"\n⚠️ Could not fetch folder name (Check if the ID is correct). Error: {e}")
+                print(f"\n\n⚠️ Could not fetch folder name (check if the ID is correct). Error: {e}")
 
-            future_list = process_folder(
+            future_list += process_folder(
                 service=service, 
                 executor=executor,
                 compress_func=compress_pdf_ghostscript,
@@ -70,29 +72,30 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
                 current_download_dir=download_dir,
                 current_compressed_dir=compressed_dir,
                 recursive=recursive,
-                recursive_depth=recursive_depth,
-                )
+                recursive_depth=recursive_depth,)
         
         # Once all files are downloaded, the 'with' block will automatically freeze the main thread 
         # and wait until the remaining background workers finish their active compressions.
-        print("\n⏳ All files downloaded! Waiting for background compressions to finish...")
+        print("\n\n⏳ All files downloaded. Waiting for background compressions to finish...")
 
-    print("\n🎉 All operations complete!")
+    print("\n\n🎉 All operations complete!")
 
     total_time = 0
     successful_count = 0
     failed_count = 0
+    total_compression = 0
 
-    # Loop through every buzzer and get the final CompressionData class
+    # Loop through every CompressionData object and get the total infos
     for future in future_list:
         result_data = future.result()
         if result_data.success:
             successful_count += 1
             total_time += result_data.compression_duration
+            total_compression += result_data.get_compression_percentage()
         else:
             failed_count += 1
 
-    print("\n📊 --- COMPRESSION STATISTICS ---")
+    print("\n\n📊 --- COMPRESSION STATISTICS ---")
     print(f"Total PDFs processed: {len(future_list)}")
     print(f"✅ Successful: {successful_count}")
     print(f"❌ Failed: {failed_count}")
@@ -101,8 +104,9 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
         average_time = total_time / successful_count
         print(f"🕑 Total time compressing: {format_duration(total_time)}")
         print(f"⏱️ Average time per PDF: {format_duration(average_time)}")
+        print(f"📉 Average compressed size: {(total_compression / successful_count):.2f}%")
     else:
-        print("No files were successfully compressed.")
+        print("😢 No files were successfully compressed.")
 
 
 def setup_flags(parser: argparse.ArgumentParser):
