@@ -8,14 +8,6 @@ from compressor import print_lock
 from utils import format_duration
 
 
-def sanitize_name(name):
-    r"""
-    Replaces illegal Windows file/folder characters with an underscore.
-    Illegal characters: < > : " / \ | ? *
-    """ # r at the start to flag docstring as "raw string" to ignore backslash
-    return re.sub(r'[<>:"/\\|?*]', '_', name)
-
-
 def process_folder(service, executor, compress_func, folder_id, current_download_dir, current_compressed_dir, recursive=False, recursive_depth=sys.maxsize):
     """Recursively processes folders to find and download PDF, then compress them with background threads."""
     # Ensure the local directories exist to mirror the Google Drive structure
@@ -24,6 +16,8 @@ def process_folder(service, executor, compress_func, folder_id, current_download
 
     query = f"'{folder_id}' in parents and trashed=false"
     page_token = None
+
+    futures = [] # Tracks all futures in this folder
 
     # Cycles through the pages (Google sends batch of files in pages)
     while True:
@@ -47,7 +41,7 @@ def process_folder(service, executor, compress_func, folder_id, current_download
                     print(f"\n📂 Opening Subfolder: {file_name}/")
                     new_download_dir = os.path.join(current_download_dir, file_name)
                     new_compressed_dir = os.path.join(current_compressed_dir, file_name)
-                    process_folder(service=service, 
+                    subfolder_futures = process_folder(service=service, 
                                    executor=executor,
                                    compress_func=compress_func,
                                    folder_id=file_id, 
@@ -56,10 +50,11 @@ def process_folder(service, executor, compress_func, folder_id, current_download
                                    recursive=recursive,
                                    recursive_depth=recursive_depth-1 # Decrease available 'dive'
                                    )
+                    futures.extend(subfolder_futures)
                 elif (not recursive and recursive_depth == 0): # We reached the specified depth
-                    print(f"   ➡️ Skipped Subfolder (run with higher --rd to include): {file_name}/")
+                    print(f"➡️ Skipped Subfolder (run with higher --rd to include): {file_name}/")
                 else: # We can't dive at all
-                    print(f"   ➡️ Skipped Subfolder (run with -r to include): {file_name}/")
+                    print(f"➡️ Skipped Subfolder (run with -r to include): {file_name}/")
                 continue
                 
             # Skip native Google Workspace files (Docs/Sheets/Slides)
@@ -68,7 +63,7 @@ def process_folder(service, executor, compress_func, folder_id, current_download
 
             # PDF files handling
             if file_name.lower().endswith('.pdf') or mime_type == 'application/pdf':
-                print(f"\n⬇️ Downloading: {file_name}")
+                print(f"\n📄 Downloading: {file_name}")
                 request = service.files().get_media(fileId=file_id)
                 file_path = os.path.join(current_download_dir, file_name)
                 
@@ -83,9 +78,10 @@ def process_folder(service, executor, compress_func, folder_id, current_download
                 output_path = os.path.join(current_compressed_dir, file_name)
                 print(f"   ➡️ 🔄 Pushing '{file_name}' to background compression queue...")
 
-                # Submits the function and arguments to the background thread pool
+                # Submits the function and arguments to the background thread pool, append a callback and adds the future to the list
                 future = executor.submit(compress_func, file_path, output_path)
                 future.add_done_callback(print_compression_result)
+                futures.append(future)
             else:
                 print(f"Skipped compression (not a PDF): {file_name}")
                 pass
@@ -94,6 +90,15 @@ def process_folder(service, executor, compress_func, folder_id, current_download
         page_token = results.get('nextPageToken', None)
         if page_token is None:
             break
+    return futures
+
+
+def sanitize_name(name):
+    r"""
+    Replaces illegal Windows file/folder characters with an underscore.
+    Illegal characters: < > : " / \ | ? *
+    """ # r at the start to flag docstring as "raw string" to ignore backslash
+    return re.sub(r'[<>:"/\\|?*]', '_', name)
 
 
 def print_compression_result(future):

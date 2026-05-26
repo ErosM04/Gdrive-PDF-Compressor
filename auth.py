@@ -26,6 +26,6 @@ def authenticate_gdrive():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
     
-    print("\nLogin performed successfully")
+    print("\n👤 Login performed successfully")
 
     return creds

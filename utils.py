@@ -13,8 +13,12 @@ def clean_directory(directory):
 
 
 def format_duration(duration):
-    "Formats a number into ``xxh xxm xxs``"
-    duration = int(duration)
+    """Formats a number into ``xxh xxm xxs``.
+    If the duration is less than 1 second, it will be rounded to 2 decimals and shown as seconds."""
+    if duration > 1:
+        duration = int(duration)
+    else:
+        return f"{round(duration, 2)}s"
     if duration < 60:
         return f"{duration}s"
     elif duration < 3600:

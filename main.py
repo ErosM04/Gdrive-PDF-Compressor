@@ -9,7 +9,7 @@ from googleapiclient.discovery import build
 from auth import authenticate_gdrive
 from downloader import process_folder
 from compressor import compress_pdf_ghostscript
-from utils import clean_directory
+from utils import clean_directory, format_duration
 
 FOLDER_IDS_LOCATION = "folder_ids.json"
 
@@ -62,7 +62,7 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
             except Exception as e:
                 print(f"\n⚠️ Could not fetch folder name (Check if the ID is correct). Error: {e}")
 
-            process_folder(
+            future_list = process_folder(
                 service=service, 
                 executor=executor,
                 compress_func=compress_pdf_ghostscript,
@@ -76,8 +76,33 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
         # Once all files are downloaded, the 'with' block will automatically freeze the main thread 
         # and wait until the remaining background workers finish their active compressions.
         print("\n⏳ All files downloaded! Waiting for background compressions to finish...")
-    
-    print("\nAll operations complete!")
+
+    print("\n🎉 All operations complete!")
+
+    total_time = 0
+    successful_count = 0
+    failed_count = 0
+
+    # Loop through every buzzer and get the final CompressionData class
+    for future in future_list:
+        result_data = future.result()
+        if result_data.success:
+            successful_count += 1
+            total_time += result_data.compression_duration
+        else:
+            failed_count += 1
+
+    print("\n📊 --- COMPRESSION STATISTICS ---")
+    print(f"Total PDFs processed: {len(future_list)}")
+    print(f"✅ Successful: {successful_count}")
+    print(f"❌ Failed: {failed_count}")
+
+    if successful_count > 0:
+        average_time = total_time / successful_count
+        print(f"🕑 Total time compressing: {format_duration(total_time)}")
+        print(f"⏱️ Average time per PDF: {format_duration(average_time)}")
+    else:
+        print("No files were successfully compressed.")
 
 
 def setup_flags(parser: argparse.ArgumentParser):
@@ -112,10 +137,3 @@ if __name__ == '__main__': # Avoids to run the script when file is imported as m
         main(read_folders_ids(FOLDER_IDS_LOCATION), clean=args.clean, recursive=args.recursive)
     else:
         main(read_folders_ids(FOLDER_IDS_LOCATION), clean=args.clean, recursive=args.recursive, recursive_depth=args.rd)
-
-
-#     if total_compressed_files > 0:
-#         print(f"\nProcessing complete.\nTotal files: {total_compressed_files}\nTotal compression time: {format_duration(total_time)}")
-#         print(f"Average compression time: {format_duration(total_time / total_compressed_files)}")
-#     else:
-#         print("No PDF files were compressed.")
