@@ -64,6 +64,7 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
                         "recursive": args.recursive,
                         "pdfs_first": args.pf,
                         "recursive_depth": args.rd,
+                        "file_limit": args.number_of_files
                     }
         
         for folder_id in folder_ids_list:
@@ -136,14 +137,14 @@ def setup_flags(parser: argparse.ArgumentParser):
                         help="Recursively search and download files from all subfolders.")
    
     # --rd / --recursive-depth flag
-    parser.add_argument("--rd", "--recursive-depth",
+    parser.add_argument("--rd", "--recursive-depth", 
                         type=int,
                         help="Recursively search and download files from all subfolders with given depth.")
     
-    # -n / --number-of-files
-    # parser.add_argument("--n", "--number-of-files",
-    #                     type=int,
-    #                     help="Set the amount of file that can be processed. After the limit is reached the program stops.")
+    # -n / --number-of-files flag
+    parser.add_argument("-n", "--number-of-files",
+                        type=int,
+                        help="Set the amount of file that can be processed for each given folder ID. After the limit is reached the program stops processing the folder.")
 
     # --pf / --pdfs-first flag
     parser.add_argument('--pf', '--pdfs-first', 

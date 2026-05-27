@@ -18,6 +18,7 @@ def process_folder(service, # Google Drive service to retrive data
                    recursive=False, # Use recursion until subfolder tree bottom
                    recursive_depth=0, # Limit to subfolder tree depth that can be reached
                    pdfs_first=False, # If True process all PDF files before diving into subfolders
+                   file_limit=None, # Limit of file that can be processed, None is no limit
                    starting_spacing=BASE_SPACING # Amount of spacing to insert before a print
                    ):
     """Recursively processes folders to find and download PDF, then compresses them with background threads."""
@@ -49,6 +50,11 @@ def process_folder(service, # Google Drive service to retrive data
             file_name = sanitize_name(item['name'])
             mime_type = item['mimeType']
 
+            # Check on file limit
+            if file_limit is not None and file_limit <= 0:
+                print(f"\n{starting_spacing}⚠️ Processable file limit reached")
+                break
+
             # Folder handling
             if mime_type == 'application/vnd.google-apps.folder':
                 if recursive or (not recursive and recursive_depth > 0): # We can dive until bottom, or we still didn't reach the secified depth
@@ -64,6 +70,7 @@ def process_folder(service, # Google Drive service to retrive data
                                    recursive=recursive,
                                    recursive_depth=recursive_depth-1, # Decrease available 'dive'
                                    pdfs_first=pdfs_first,
+                                   file_limit=file_limit,
                                    starting_spacing=starting_spacing+BASE_SPACING
                                    )
                     futures.extend(subfolder_futures)
@@ -78,7 +85,8 @@ def process_folder(service, # Google Drive service to retrive data
                 continue
 
             # PDF files handling
-            if file_name.lower().endswith('.pdf') or mime_type == 'application/pdf':
+            if (file_name.lower().endswith('.pdf') or mime_type == 'application/pdf'):              
+                file_limit -= 1
                 print(f"\n{starting_spacing}📄 Downloading: {file_name}")
                 
                 request = service.files().get_media(fileId=file_id)
