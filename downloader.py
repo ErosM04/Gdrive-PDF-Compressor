@@ -1,7 +1,6 @@
 import os
 import io
 import re
-import sys
 
 from googleapiclient.http import MediaIoBaseDownload
 from compressor import print_lock
@@ -17,7 +16,8 @@ def process_folder(service, # Google Drive service to retrive data
                    current_download_dir, # Current downloads folder path
                    current_compressed_dir, # Current compressed (files) folder path
                    recursive=False, # Use recursion until subfolder tree bottom
-                   recursive_depth=sys.maxsize, # Limit to subfolder tree depth that can be reached
+                   recursive_depth=0, # Limit to subfolder tree depth that can be reached
+                   pdfs_first=False, # If True process all PDF files before diving into subfolders
                    starting_spacing=BASE_SPACING # Amount of spacing to insert before a print
                    ):
     """Recursively processes folders to find and download PDF, then compresses them with background threads."""
@@ -41,6 +41,9 @@ def process_folder(service, # Google Drive service to retrive data
         
         items = results.get('files', [])
 
+        if pdfs_first:
+            items = push_folders_to_tail(items)
+
         for item in items:
             file_id = item['id']
             file_name = sanitize_name(item['name'])
@@ -60,6 +63,7 @@ def process_folder(service, # Google Drive service to retrive data
                                    current_compressed_dir=new_compressed_dir,
                                    recursive=recursive,
                                    recursive_depth=recursive_depth-1, # Decrease available 'dive'
+                                   pdfs_first=pdfs_first,
                                    starting_spacing=starting_spacing+BASE_SPACING
                                    )
                     futures.extend(subfolder_futures)
@@ -112,6 +116,22 @@ def sanitize_name(name):
     Illegal characters: < > : " / \ | ? *
     """ # r at the start to flag docstring as "raw string" to ignore backslash
     return re.sub(r'[<>:"/\\|?*]', '_', name)
+
+
+def push_folders_to_tail(list):
+    """Takes a List and push to the tail all the Google Drive folder elements."""
+    index = 0
+    virtual_len = len(list)
+
+    while index < virtual_len:
+        if list[index]['mimeType'] == 'application/vnd.google-apps.folder':
+            list.append(list[index])
+            list.pop(index)
+            index -= 1
+            virtual_len -= 1
+        index += 1
+    
+    return list
 
 
 def print_compression_result(future):
