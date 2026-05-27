@@ -1,7 +1,6 @@
 import argparse
 import os
 # from random import random
-import sys
 import json
 from concurrent.futures import ThreadPoolExecutor
 from googleapiclient.discovery import build
