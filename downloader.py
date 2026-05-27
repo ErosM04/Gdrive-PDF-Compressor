@@ -86,7 +86,9 @@ def process_folder(service, # Google Drive service to retrive data
 
             # PDF files handling
             if (file_name.lower().endswith('.pdf') or mime_type == 'application/pdf'):              
-                file_limit -= 1
+                if file_limit is not None: # Updates file limit if used
+                    file_limit -= 1
+
                 print(f"\n{starting_spacing}📄 Downloading: {file_name}")
                 
                 request = service.files().get_media(fileId=file_id)
