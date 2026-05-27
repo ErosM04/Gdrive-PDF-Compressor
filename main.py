@@ -40,10 +40,10 @@ def read_folders_ids(location):
     return ids
 
 
-def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxsize, download_dir="downloads", compressed_dir="compressed"):
+def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compressed"):
     """Setup the Google Drive service and cycles all the given folders."""
     # Clean the directories if the -c flag is used
-    if clean:
+    if args.clean is not None and args.clean is True:
         clean_directory(download_dir)
         clean_directory(compressed_dir)
 
@@ -53,9 +53,19 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
     future_list = []
     
     # Set up the Thread Pool
-    # max_workers=4 allows up to 4 PDFs to be compressed simultaneously.
-    # You can increase this if you have a powerful CPU, but 4 is generally safe.
+    # max_workers is the number of background threads, 4 is generally safe for most CPUs.
     with ThreadPoolExecutor(max_workers=4) as executor:
+        params = { # Creates parameters for process_folder()
+                        "service": service, 
+                        "executor": executor,
+                        "compress_func": compress_pdf_ghostscript,
+                        "current_download_dir": download_dir,
+                        "current_compressed_dir": compressed_dir,
+                        "recursive": args.recursive,
+                        "pdfs_first": args.pf,
+                        "recursive_depth": args.rd,
+                    }
+        
         for folder_id in folder_ids_list:
             try:
                 folder_metadata = service.files().get(fileId=folder_id, fields="name").execute()
@@ -63,16 +73,11 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
                 print(f"\n\n📁 Target Google Drive Folder: '{root_folder_name}'")
             except Exception as e:
                 print(f"\n\n⚠️ Could not fetch folder name (check if the ID is correct). Error: {e}")
+            
+            params["folder_id"] = folder_id # Adds folder_id to parameters
+            kwargs = {k: v for k, v in params.items() if v is not None} # Dictionary comprehension to remove None parameters
 
-            future_list += process_folder(
-                service=service, 
-                executor=executor,
-                compress_func=compress_pdf_ghostscript,
-                folder_id=folder_id,
-                current_download_dir=download_dir,
-                current_compressed_dir=compressed_dir,
-                recursive=recursive,
-                recursive_depth=recursive_depth,)
+            future_list += process_folder(**kwargs)
         
         # Once all files are downloaded, the 'with' block will automatically freeze the main thread 
         # and wait until the remaining background workers finish their active compressions.
@@ -81,9 +86,12 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
     print("\n\n🎉 All operations complete!")
 
     total_time = 0
+    w_total_time = 0
     successful_count = 0
     failed_count = 0
     total_compression = 0
+    w_total_compression = 0
+    weights_sum = 0
 
     # Loop through every CompressionData object and get the total infos
     for future in future_list:
@@ -91,7 +99,11 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
         if result_data.success:
             successful_count += 1
             total_time += result_data.compression_duration
+            w_total_time += result_data.compression_duration * result_data.compressed_size # value * weighted
             total_compression += result_data.get_compression_percentage()
+            w_total_compression += result_data.get_compression_percentage() * result_data.compressed_size # value * weighted
+            weights_sum += result_data.compressed_size
+            
         else:
             failed_count += 1
 
@@ -101,10 +113,11 @@ def main(folder_ids_list, clean: bool, recursive: bool, recursive_depth=sys.maxs
     print(f"❌ Failed: {failed_count}")
 
     if successful_count > 0:
-        average_time = total_time / successful_count
         print(f"🕑 Total time compressing: {format_duration(total_time)}")
-        print(f"⏱️ Average time per PDF: {format_duration(average_time)}")
+        print(f"⏱️ Average time per PDF: {format_duration(total_time / successful_count)}")
         print(f"📉 Average compressed size: {(total_compression / successful_count):.2f}%")
+        print(f"⚖️⏱️ Normalized weighted average time per PDF: {format_duration(w_total_time / weights_sum)}")
+        print(f"⚖️📉 Normalized weighted average compressed size: {(w_total_compression / weights_sum):.2f}%")
     else:
         print("😢 No files were successfully compressed.")
 
@@ -126,6 +139,16 @@ def setup_flags(parser: argparse.ArgumentParser):
     parser.add_argument("--rd", "--recursive-depth",
                         type=int,
                         help="Recursively search and download files from all subfolders with given depth.")
+    
+    # -n / --number-of-files
+    # parser.add_argument("--n", "--number-of-files",
+    #                     type=int,
+    #                     help="Set the amount of file that can be processed. After the limit is reached the program stops.")
+
+    # --pf / --pdfs-first flag
+    parser.add_argument('--pf', '--pdfs-first', 
+                        action='store_true',
+                        help="Before diving into subfolders, process all the PDF files in the current folder.")
 
 
 if __name__ == '__main__': # Avoids to run the script when file is imported as module
@@ -134,10 +157,4 @@ if __name__ == '__main__': # Avoids to run the script when file is imported as m
     
     setup_flags(parser)
 
-    # Parse the arguments provided by the user
-    args = parser.parse_args()
-
-    if args.rd is None:
-        main(read_folders_ids(FOLDER_IDS_LOCATION), clean=args.clean, recursive=args.recursive)
-    else:
-        main(read_folders_ids(FOLDER_IDS_LOCATION), clean=args.clean, recursive=args.recursive, recursive_depth=args.rd)
+    main(read_folders_ids(FOLDER_IDS_LOCATION), args=parser.parse_args())
