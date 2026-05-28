@@ -22,6 +22,7 @@ Python script to retrive PDF files from a Google Drive folder and then compress 
     - [ ] delete downloaded files right after compression with ``-dd``
     - [ ] delete compressed files right after upload with ``-dc``
 - [X] Set max amount of files, default is ♾️, otherwise ``-n [n]``
+- [ ] Option to read list of folder IDs from terminal args with ``-i`` o ``--ids`` 
 
 Add this:
 ``"Grab this from the URL of your Google Drive folder
