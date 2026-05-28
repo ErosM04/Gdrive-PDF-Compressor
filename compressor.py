@@ -3,7 +3,7 @@ import time
 import subprocess
 import threading
 
-from compression_data import CompressionData
+from processed_file_data import ProcessedFileData
 
 
 # A lock to prevent background threads from fucking up terminal text when printing
@@ -38,23 +38,23 @@ def compress_pdf_ghostscript(input_path, output_path, start_spacing):
         start = time.time()
         subprocess.run(command, check=True) # Compress the PDF using the Ghostscript command
         
-        return CompressionData(file_name=os.path.basename(output_path),
+        return ProcessedFileData(file_name=os.path.basename(output_path),
                                    original_size= round((os.path.getsize(input_path) / 1024), 2),
                                    compressed_size=round((os.path.getsize(output_path) / 1024), 2),
                                    compression_duration= time.time() - start,
-                                   success=True,
+                                   compression_success=True,
                                    start_spacing=start_spacing+"  ")
         
     except subprocess.CalledProcessError as e:
-        return CompressionData(file_name=os.path.basename(output_path),
+        return ProcessedFileData(file_name=os.path.basename(output_path),
                                    original_size= round((os.path.getsize(input_path) / 1024), 2),
                                    compression_duration= time.time() - start,
-                                   success=False,
+                                   compression_success=False,
                                    error_message=e,
                                    start_spacing=start_spacing+"  ")
 
     except FileNotFoundError:
-        return CompressionData(file_name=os.path.basename(output_path),
-                                   success=False,
+        return ProcessedFileData(file_name=os.path.basename(output_path),
+                                   compression_success=False,
                                    error_message=e,
                                    start_spacing=start_spacing+"  ")

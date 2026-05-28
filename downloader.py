@@ -3,13 +3,15 @@ import io
 import re
 
 from googleapiclient.http import MediaIoBaseDownload
-from compressor import print_lock
 from utils import format_duration
+from uploader import replace_file_on_drive
+from compressor import print_lock
 
 BASE_SPACING = "   " # Space increase between subfolders's prints
 
 
-def process_folder(service, # Google Drive service to retrive data
+def process_folder(creds, # Google credentials
+                   service, # Google Drive service to retrive data
                    executor, # Multithread manager
                    compress_func, # Compression function
                    folder_id, # Google Drive ID of the folder to process
@@ -19,7 +21,7 @@ def process_folder(service, # Google Drive service to retrive data
                    recursive_depth=0, # Limit to subfolder tree depth that can be reached
                    pdfs_first=False, # If True process all PDF files before diving into subfolders
                    file_limit=None, # Limit of file that can be processed, None is no limit
-                   starting_spacing=BASE_SPACING # Amount of spacing to insert before a print
+                   start_spacing=BASE_SPACING # Amount of spacing to insert before a print
                    ):
     """Recursively processes folders to find and download PDF, then compresses them with background threads."""
     # Ensure the local directories exist to mirror the Google Drive structure
@@ -52,32 +54,32 @@ def process_folder(service, # Google Drive service to retrive data
 
             # Check on file limit
             if file_limit is not None and file_limit <= 0:
-                print(f"\n{starting_spacing}⚠️ Processable file limit reached")
+                print(f"\n{start_spacing}⚠️ Processable file limit reached")
                 break
 
             # Folder handling
             if mime_type == 'application/vnd.google-apps.folder':
                 if recursive or (not recursive and recursive_depth > 0): # We can dive until bottom, or we still didn't reach the secified depth
-                    print(f"\n{starting_spacing}📂 Opening Subfolder: {file_name}/")
+                    print(f"\n{start_spacing}📂 Opening Subfolder: {file_name}/")
                     new_download_dir = os.path.join(current_download_dir, file_name)
                     new_compressed_dir = os.path.join(current_compressed_dir, file_name)
-                    subfolder_futures = process_folder(service=service, 
-                                   executor=executor,
-                                   compress_func=compress_func,
-                                   folder_id=file_id, 
-                                   current_download_dir=new_download_dir,
-                                   current_compressed_dir=new_compressed_dir,
-                                   recursive=recursive,
-                                   recursive_depth=recursive_depth-1, # Decrease available 'dive'
-                                   pdfs_first=pdfs_first,
-                                   file_limit=file_limit,
-                                   starting_spacing=starting_spacing+BASE_SPACING
-                                   )
+                    subfolder_futures = process_folder(creds=creds,
+                                                       service=service, 
+                                                       executor=executor,
+                                                       compress_func=compress_func,
+                                                       folder_id=file_id, 
+                                                       current_download_dir=new_download_dir,
+                                                       current_compressed_dir=new_compressed_dir,
+                                                       recursive=recursive,
+                                                       recursive_depth=recursive_depth-1, # Decrease available 'dive'
+                                                       pdfs_first=pdfs_first,
+                                                       file_limit=file_limit,
+                                                       start_spacing=start_spacing+BASE_SPACING)
                     futures.extend(subfolder_futures)
                 elif (not recursive and recursive_depth == 0): # We reached the specified depth
-                    print(f"\n{starting_spacing}▶️ Skipped Subfolder (run with higher --rd to include): {file_name}/")
+                    print(f"\n{start_spacing}▶️ Skipped Subfolder (run with higher --rd to include): {file_name}/")
                 else: # We can't dive at all
-                    print(f"\n{starting_spacing}▶️ Skipped Subfolder (run with -r to include): {file_name}/")
+                    print(f"\n{start_spacing}▶️ Skipped Subfolder (run with -r to include): {file_name}/")
                 continue
                 
             # Skip native Google Workspace files (Docs/Sheets/Slides)
@@ -89,7 +91,7 @@ def process_folder(service, # Google Drive service to retrive data
                 if file_limit is not None: # Updates file limit if used
                     file_limit -= 1
 
-                print(f"\n{starting_spacing}📄 Downloading: {file_name}")
+                print(f"\n{start_spacing}📄 Downloading: {file_name}")
                 
                 request = service.files().get_media(fileId=file_id)
                 file_path = os.path.join(current_download_dir, file_name)
@@ -99,25 +101,59 @@ def process_folder(service, # Google Drive service to retrive data
                     done = False
                     while not done:
                         status, done = downloader.next_chunk()
-                        print(f"{starting_spacing}  ▶️ Download {int(status.progress() * 100)}%.", end='\r', flush=True) # Gradually updates only for >100MB files
+                        print(f"{start_spacing}  ▶️ Download {int(status.progress() * 100)}%.", end='\r', flush=True) # Gradually updates only for >100MB files
                 print()
                 
                 output_path = os.path.join(current_compressed_dir, file_name)
-                print(f"{starting_spacing}  ▶️ 🔄 Pushing '{file_name}' to background compression queue...")
+                print(f"{start_spacing}  ▶️ 🔄 Pushing '{file_name}' to background compression queue...")
 
                 # Submits the function and arguments to the background thread pool, append a callback and adds the future to the list
-                future = executor.submit(compress_func, file_path, output_path, starting_spacing)
-                future.add_done_callback(print_compression_result)
+                future = executor.submit(background_pipeline, creds, file_path, output_path, file_id, compress_func, start_spacing)
+                future.add_done_callback(print_processed_file_result)
                 futures.append(future)
             else:
-                print(f"{starting_spacing}  ▶️ Skipped compression (not a PDF): {file_name}")
+                print(f"{start_spacing}  ▶️ Skipped compression (not a PDF): {file_name}")
                 pass
 
         # Handles pagination if the folder has a massive amount of files (Google sends batch of files in pages)
         page_token = results.get('nextPageToken', None)
         if page_token is None:
             break
+
     return futures
+
+
+# --- NEW: The glue function for the background thread ---
+def background_pipeline(creds, input_path, output_path, original_file_id, compress_func, start_spacing):
+    """Executes the compression, and if successful, executes the upload."""
+    
+    result_data = compress_func(input_path, output_path, start_spacing)
+    
+    if result_data.compression_success:
+        upload_success = replace_file_on_drive(creds, original_file_id, output_path, result_data.file_name, start_spacing)
+        result_data.upload_success = upload_success # This named parameter is dinamically added to the class
+    else:
+        result_data.upload_success = False
+        
+    return result_data
+
+
+def print_processed_file_result(future):
+    """Prints informations regarding the results of a file compression."""
+    try:
+        result_data = future.result()
+        
+        with print_lock:
+            if result_data.compression_success:
+                print(f"\n{result_data.start_spacing}▶️ ✅ '{result_data.file_name}' took {format_duration(result_data.compression_duration)} to compress from {result_data.original_size}KB to {result_data.compressed_size}KB ({result_data.get_compression_percentage()}%)")
+                up_status = "☁️ Uploaded!" if result_data.upload_success else "⚠️ Upload Failed!"
+                print(f"\n{result_data.start_spacing}{result_data.file_name} update: -> {up_status}")
+            else:
+                print(f"\n{result_data.start_spacing}▶️ ⚠️ Background task failed for {result_data.file_name}: {result_data.error_message}")
+            
+    except Exception as e:
+        with print_lock:
+            print(f"\n{result_data.start_spacing}▶️ 🔴 Background thread crashed: {e}")
 
 
 def sanitize_name(name):
@@ -142,19 +178,3 @@ def push_folders_to_tail(list):
         index += 1
     
     return list
-
-
-def print_compression_result(future):
-    """Prints informations regarding the results of a file compression."""
-    try:
-        result_data = future.result()
-        
-        with print_lock:
-            if result_data.success:
-                print(f"\n{result_data.start_spacing}▶️ ✅ '{result_data.file_name}' took {format_duration(result_data.compression_duration)} to compress from {result_data.original_size}KB to {result_data.compressed_size}KB ({result_data.get_compression_percentage()}%)")
-            else:
-                print(f"\n{result_data.start_spacing}▶️ ⚠️ Background task failed for {result_data.file_name}: {result_data.error_message}")
-            
-    except Exception as e:
-        with print_lock:
-            print(f"\n{result_data.start_spacing}▶️ 🔴 Background thread crashed: {e}")

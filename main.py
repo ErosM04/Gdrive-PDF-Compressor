@@ -1,4 +1,3 @@
-import argparse
 import os
 # from random import random
 import json
@@ -9,34 +8,9 @@ from auth import authenticate_gdrive
 from downloader import process_folder
 from compressor import compress_pdf_ghostscript
 from utils import clean_directory, format_duration
+from flags import get_args
 
 FOLDER_IDS_LOCATION = "folder_ids.json"
-
-
-def read_folders_ids(location):
-    """Reads a JSON file containg all the folder IDs"""
-    if not os.path.exists(location) and os.path.getsize(location) > 0:
-        print(f"Folder IDs file '{location}' not found or empty.")
-        return
-    
-    data = None
-    with open(location, "r") as file:
-        try:
-            data = json.load(file)
-
-        except json.JSONDecodeError:
-            print(f"The folder IDs file '{location}' exists but does not contain a valid JSON.")
-            return
-
-    if not data or not data["ids"]:
-        print(f"No folder IDs listed in '{location}'")
-        return
-    
-    ids = []
-    for id in data["ids"]:
-        ids.append(id)
-            
-    return ids
 
 
 def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compressed"):
@@ -47,7 +21,8 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
         clean_directory(compressed_dir)
 
     # Setup Google Drive service
-    service = build('drive', 'v3', credentials=authenticate_gdrive())
+    creds = authenticate_gdrive()
+    service = build('drive', 'v3', credentials=creds)
 
     future_list = []
     
@@ -55,6 +30,7 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
     # max_workers is the number of background threads, 4 is generally safe for most CPUs.
     with ThreadPoolExecutor(max_workers=4) as executor:
         params = { # Creates parameters for process_folder()
+                        "creds": creds,
                         "service": service, 
                         "executor": executor,
                         "compress_func": compress_pdf_ghostscript,
@@ -85,76 +61,80 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
 
     print("\n\n🎉 All operations complete!")
 
+    print_final_statistics(future_list)
+
+
+def print_final_statistics(data_list):
     total_time = 0
     w_total_time = 0
-    successful_count = 0
-    failed_count = 0
+    successful_compressions = 0
+    successful_uploads = 0
+    failed_compressions = 0
+    failed_uploads = 0
     total_compression = 0
     w_total_compression = 0
     weights_sum = 0
 
     # Loop through every CompressionData object and get the total infos
-    for future in future_list:
-        result_data = future.result()
-        if result_data.success:
-            successful_count += 1
+    for element in data_list:
+        result_data = element.result()
+        if result_data.compression_success:
+            successful_compressions += 1
             total_time += result_data.compression_duration
             w_total_time += result_data.compression_duration * result_data.compressed_size # value * weighted
             total_compression += result_data.get_compression_percentage()
             w_total_compression += result_data.get_compression_percentage() * result_data.compressed_size # value * weighted
             weights_sum += result_data.compressed_size
-            
+
+            if getattr(result_data, 'upload_success', False): # Get named (dinamically created) attribute of the given class
+                successful_uploads += 1
+            else:
+                failed_uploads += 1
         else:
-            failed_count += 1
+            failed_compressions += 1
 
-    print("\n\n📊 --- COMPRESSION STATISTICS ---")
-    print(f"Total PDFs processed: {len(future_list)}")
-    print(f"✅ Successful: {successful_count}")
-    print(f"❌ Failed: {failed_count}")
+    print("\n\n📊 --- FINAL STATISTICS ---")
+    print(f"Total PDFs processed: {len(data_list)}")
+    print(f"✅ Successful compressions: {successful_compressions}")
+    print(f"❌ Failed compressions: {failed_compressions}")
+    print(f"✅ Successful uploads: {successful_uploads}")
+    print(f"❌ Failed compressions: {failed_uploads}")
 
-    if successful_count > 0:
-        print(f"🕑 Total time compressing: {format_duration(total_time)}")
-        print(f"⏱️ Average time per PDF: {format_duration(total_time / successful_count)}")
-        print(f"📉 Average compressed size: {(total_compression / successful_count):.2f}%")
+    if successful_compressions > 0:
+        print(f"\n🕑 Total time compressing: {format_duration(total_time)}")
+        print(f"⏱️ Average time per PDF: {format_duration(total_time / successful_compressions)}")
+        print(f"📉 Average compressed size: {(total_compression / successful_compressions):.2f}%")
         print(f"⚖️⏱️ Normalized weighted average time per PDF: {format_duration(w_total_time / weights_sum)}")
         print(f"⚖️📉 Normalized weighted average compressed size: {(w_total_compression / weights_sum):.2f}%")
     else:
-        print("😢 No files were successfully compressed.")
+        print("\n😢 No files were successfully compressed.")
 
 
-def setup_flags(parser: argparse.ArgumentParser):
-    """Setup all the flags for the script arguments. Can be listed with '--help'."""
+def read_folders_ids(location):
+    """Reads a JSON file containg all the folder IDs"""
+    if not os.path.exists(location) and os.path.getsize(location) > 0:
+        print(f"Folder IDs file '{location}' not found or empty.")
+        return
     
-    # -c / --clean flag
-    parser.add_argument('-c', '--clean', 
-                        action='store_true', # treats the argument as a boolean itself, or the command to run the script would be: "py .\main.py -r True" 
-                        help="Delete the existing 'downloads' and 'compressed' folder before starting.")
-    
-    # -r / --recursive flag
-    parser.add_argument('-r', '--recursive', 
-                        action='store_true',
-                        help="Recursively search and download files from all subfolders.")
-   
-    # --rd / --recursive-depth flag
-    parser.add_argument("--rd", "--recursive-depth", 
-                        type=int,
-                        help="Recursively search and download files from all subfolders with given depth.")
-    
-    # -n / --number-of-files flag
-    parser.add_argument("-n", "--number-of-files",
-                        type=int,
-                        help="Set the amount of file that can be processed for each given folder ID. After the limit is reached the program stops processing the folder.")
+    data = None
+    with open(location, "r") as file:
+        try:
+            data = json.load(file)
 
-    # --pf / --pdfs-first flag
-    parser.add_argument('--pf', '--pdfs-first', 
-                        action='store_true',
-                        help="Before diving into subfolders, process all the PDF files in the current folder.")
+        except json.JSONDecodeError:
+            print(f"The folder IDs file '{location}' exists but does not contain a valid JSON.")
+            return
+
+    if not data or not data["ids"]:
+        print(f"No folder IDs listed in '{location}'")
+        return
+    
+    ids = []
+    for id in data["ids"]:
+        ids.append(id)
+            
+    return ids
 
 
 if __name__ == '__main__': # Avoids to run the script when file is imported as module
-    # Set up the command line argument parser
-    parser = argparse.ArgumentParser(description="Download and compress PDFs from a Google Drive folder.")
-    
-    setup_flags(parser)
-
-    main(read_folders_ids(FOLDER_IDS_LOCATION), args=parser.parse_args())
+    main(read_folders_ids(FOLDER_IDS_LOCATION), args=get_args())
