@@ -1,0 +1,38 @@
+import argparse
+
+def get_args():
+    # Set up the command line argument parser
+    parser = argparse.ArgumentParser(description="Download and compress PDFs from a Google Drive folder.")
+
+    setup_flags(parser)
+
+    return parser.parse_args()
+
+
+def setup_flags(parser: argparse.ArgumentParser):
+    """Setup all the flags for the script arguments. Can be listed with '--help'."""
+    
+    # -c / --clean flag
+    parser.add_argument('-c', '--clean', 
+                        action='store_true', # treats the argument as a boolean itself, or the command to run the script would be: "py .\main.py -r True" 
+                        help="Delete the existing 'downloads' and 'compressed' folder before starting.")
+    
+    # -r / --recursive flag
+    parser.add_argument('-r', '--recursive', 
+                        action='store_true',
+                        help="Recursively search and download files from all subfolders.")
+   
+    # --rd / --recursive-depth flag
+    parser.add_argument("--rd", "--recursive-depth", 
+                        type=int,
+                        help="Recursively search and download files from all subfolders with given depth.")
+    
+    # -n / --number-of-files flag
+    parser.add_argument("-n", "--number-of-files",
+                        type=int,
+                        help="Set the amount of file that can be processed for each given folder ID. After the limit is reached the program stops processing the folder.")
+
+    # --pf / --pdfs-first flag
+    parser.add_argument('--pf', '--pdfs-first', 
+                        action='store_true',
+                        help="Before diving into subfolders, process all the PDF files in the current folder.")
