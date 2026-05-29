@@ -9,8 +9,8 @@ def replace_file_on_drive(creds, file_id, file_path, file_name, start_spacing):
     service = build('drive', 'v3', credentials=creds)
     
     try:
-        with print_lock:
-            print(f"\n{start_spacing}☁️ Starting upload for replacement: {file_name}...")
+        # with print_lock:
+        #     print(f"\n{start_spacing}☁️ Starting upload for replacement: {file_name}...")
             
         # Prepare the file for upload
         media = MediaFileUpload(file_path, mimetype='application/pdf', resumable=True)

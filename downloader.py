@@ -109,7 +109,7 @@ def process_folder(creds, # Google credentials
 
                 # Submits the function and arguments to the background thread pool, append a callback and adds the future to the list
                 future = executor.submit(background_pipeline, creds, file_path, output_path, file_id, compress_func, start_spacing)
-                future.add_done_callback(print_processed_file_result)
+                future.add_done_callback(print_upload_result)
                 futures.append(future)
             else:
                 print(f"{start_spacing}  ▶️ Skipped compression (not a PDF): {file_name}")
@@ -129,7 +129,10 @@ def background_pipeline(creds, input_path, output_path, original_file_id, compre
     
     result_data = compress_func(input_path, output_path, start_spacing)
     
+    print_compression_result(result_data)
+
     if result_data.compression_success:
+        print(f"\n{start_spacing}☁️ Starting upload for replacement: {result_data.file_name}...")
         upload_success = replace_file_on_drive(creds, original_file_id, output_path, result_data.file_name, start_spacing)
         result_data.upload_success = upload_success # This named parameter is dinamically added to the class
     else:
@@ -138,22 +141,41 @@ def background_pipeline(creds, input_path, output_path, original_file_id, compre
     return result_data
 
 
-def print_processed_file_result(future):
+# def print_processed_file_result(future):
+#     """Prints informations regarding the results of a file compression."""
+#     try:
+#         result_data = future.result()
+def print_compression_result(result_data):
     """Prints informations regarding the results of a file compression."""
     try:
-        result_data = future.result()
-        
         with print_lock:
             if result_data.compression_success:
                 print(f"\n{result_data.start_spacing}▶️ ✅ '{result_data.file_name}' took {format_duration(result_data.compression_duration)} to compress from {result_data.original_size}KB to {result_data.compressed_size}KB ({result_data.get_compression_percentage()}%)")
-                up_status = "☁️ Uploaded!" if result_data.upload_success else "⚠️ Upload Failed!"
-                print(f"\n{result_data.start_spacing}{result_data.file_name} update: -> {up_status}")
+                # up_status = "☁️ Uploaded!" if result_data.upload_success else "⚠️ Upload Failed!"
+                # print(f"\n{result_data.start_spacing}'{result_data.file_name}' update: -> {up_status}")
             else:
-                print(f"\n{result_data.start_spacing}▶️ ⚠️ Background task failed for {result_data.file_name}: {result_data.error_message}")
+                print(f"\n{result_data.start_spacing}▶️ ⚠️ Background compression task failed for {result_data.file_name}: {result_data.error_message}")
             
     except Exception as e:
         with print_lock:
-            print(f"\n{result_data.start_spacing}▶️ 🔴 Background thread crashed: {e}")
+            print(f"\n{result_data.start_spacing}▶️ 🔴 Background compression thread crashed: {e}")
+
+
+def print_upload_result(future):
+    """Prints informations regarding the results of a file compression."""
+    try:
+        result_data = future.result()
+
+        with print_lock:
+            if result_data.upload_success:
+                print(f"\n{result_data.start_spacing}▶️ ✅☁️ '{result_data.file_name}' sucessfully uploaded!")
+            else:
+                print(f"\n{result_data.start_spacing}▶️ ✅☁️ '{result_data.file_name}' sucessfully uploaded!")
+                print(f"\n{result_data.start_spacing}▶️ ⚠️☁️ Background upload task failed for {result_data.file_name}: {result_data.error_message}")
+            
+    except Exception as e:
+        with print_lock:
+            print(f"\n{result_data.start_spacing}▶️ 🔴 Background upload thread crashed: {e}")
 
 
 def sanitize_name(name):

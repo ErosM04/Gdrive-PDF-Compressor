@@ -57,7 +57,7 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
         
         # Once all files are downloaded, the 'with' block will automatically freeze the main thread 
         # and wait until the remaining background workers finish their active compressions.
-        print("\n\n⏳ All files downloaded. Waiting for background compressions to finish...")
+        print("\n\n⏳ All files downloaded. Waiting for background compressions and uploads to finish...")
 
     print("\n\n🎉 All operations complete!")
 

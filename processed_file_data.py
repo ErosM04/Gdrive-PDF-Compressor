@@ -1,5 +1,5 @@
 class ProcessedFileData:
-    """Holds informations regarding the compression and upload of a file."""
+    """Holds informations regarding the compression of a file."""
 
     def __init__(self, 
                  file_name, 
@@ -9,7 +9,7 @@ class ProcessedFileData:
                  start_spacing, 
                  compression_success: bool,
                  error_message=None):
-        self.file_name = file_name   # Instance variable
+        self.file_name = file_name # Instance variable
         self.original_size = original_size
         self.compressed_size = compressed_size
         self.compression_duration = compression_duration
