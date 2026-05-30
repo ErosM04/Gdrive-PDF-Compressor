@@ -1,8 +1,8 @@
 import argparse
 
 def get_args():
-    # Set up the command line argument parser
-    parser = argparse.ArgumentParser(description="Download and compress PDFs from a Google Drive folder.")
+    """Setup and returns the command line argument parser"""
+    parser = argparse.ArgumentParser(description="Download, compress and re-upload PDFs from Google Drive folders.")
 
     setup_flags(parser)
 
@@ -27,20 +27,19 @@ def setup_flags(parser: argparse.ArgumentParser):
                         type=int,
                         help="Recursively search and download files from all subfolders with given depth.")
     
-    # -n / --number-of-files flag
-    parser.add_argument("-n", "--number-of-files",
-                        type=int,
-                        help="Set the amount of file that can be processed for each given folder ID. After the limit is reached "
-                        "the program stops processing the folder.")
-
-    # --pf / --pdfs-first flag
-    parser.add_argument('--pf', '--pdfs-first', 
-                        action='store_true',
-                        help="Before diving into subfolders, process all the PDF files in the current folder.")
-    
-    
     # -u / --upload flag
     parser.add_argument('-u', '--upload', 
                         action='store_true',
                         help="Uploads the compressed file to its orginal position to Google Drive. "
                         "The script overwrites the orginal file with its compressed version, thus preserving the orginal ID.")
+    
+    # --pf / --pdfs-first flag
+    parser.add_argument('--pf', '--pdfs-first', 
+                        action='store_true',
+                        help="Before diving into subfolders, process all the PDF files in the current folder.")
+
+    # -n / --number-of-files flag
+    parser.add_argument("-n", "--number-of-files",
+                        type=int,
+                        help="Set the amount of file that can be processed for each given folder ID. After the limit is reached "
+                        "the program stops processing the folder.")

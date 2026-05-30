@@ -5,14 +5,13 @@ import threading
 
 from processed_file_data import ProcessedFileData
 
-
 # A lock to prevent background threads from fucking up terminal text when printing
 print_lock = threading.Lock()
 
 
 def compress_pdf_ghostscript(input_path, output_path, start_spacing):
-    """Compresses a PDF file using Ghostscript in a background thread.
-    If the compression succeded returns the informations regarding the compression."""
+    """Compresses a PDF file using Ghostscript.
+    If the compression succeded returns informations about the compression task."""
     # Note: If you are on Windows, change "gs" to "gswin64c"
     ghostscript_cmd = "gswin64c"
 

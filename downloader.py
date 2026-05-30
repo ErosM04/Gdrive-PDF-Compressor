@@ -24,7 +24,8 @@ def process_folder(creds, # Google credentials
                    upload=False, # Whether to upload the compressed files back to Google Drive
                    start_spacing=BASE_SPACING # Amount of spacing to insert before a print
                    ):
-    """Recursively processes folders to find and download PDF, then compresses them with background threads."""
+    """Recursively processes Drive folders to find and download PDF, then compresses them with background threads 
+    and if ``upload`` is ``True``, sends them back to Drive."""
     # Ensure the local directories exist to mirror the Google Drive structure
     os.makedirs(current_download_dir, exist_ok=True)
     os.makedirs(current_compressed_dir, exist_ok=True)
@@ -126,8 +127,8 @@ def process_folder(creds, # Google credentials
     return futures
 
 
-def background_pipeline(creds, input_path, output_path, original_file_id, compress_func, start_spacing, upload: bool):
-    """Executes the compression, and if successful, executes the upload."""
+def background_pipeline(creds, input_path, output_path, original_file_id, compress_func, start_spacing, upload=False):
+    """Executes the compression, and if successful, executes the upload (if ``upload`` is ``True``)."""
     
     result_data = compress_func(input_path, output_path, start_spacing)
     
@@ -188,7 +189,7 @@ def sanitize_name(name):
 
 
 def push_folders_to_tail(list):
-    """Takes a List and push to the tail all the Google Drive folder elements."""
+    """Takes a List and pushes to the tail all the Google Drive folder elements."""
     index = 0
     virtual_len = len(list)
 
