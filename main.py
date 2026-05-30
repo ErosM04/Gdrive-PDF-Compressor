@@ -66,7 +66,6 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
 
 def print_final_statistics(data_list):
     total_time = 0
-    w_total_time = 0
     successful_compressions = 0
     successful_uploads = 0
     failed_compressions = 0
@@ -81,7 +80,6 @@ def print_final_statistics(data_list):
         if result_data.compression_success:
             successful_compressions += 1
             total_time += result_data.compression_duration
-            w_total_time += result_data.compression_duration * result_data.compressed_size # value * weighted
             total_compression += result_data.get_compression_percentage()
             w_total_compression += result_data.get_compression_percentage() * result_data.compressed_size # value * weighted
             weights_sum += result_data.compressed_size
@@ -104,7 +102,6 @@ def print_final_statistics(data_list):
         print(f"\n🕑 Total time compressing: {format_duration(total_time)}")
         print(f"⏱️ Average time per PDF: {format_duration(total_time / successful_compressions)}")
         print(f"📉 Average compressed size: {(total_compression / successful_compressions):.2f}%")
-        print(f"⚖️⏱️ Normalized weighted average time per PDF: {format_duration(w_total_time / weights_sum)}")
         print(f"⚖️📉 Normalized weighted average compressed size: {(w_total_compression / weights_sum):.2f}%")
     else:
         print("\n😢 No files were successfully compressed.")
