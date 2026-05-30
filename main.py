@@ -19,7 +19,7 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
     if args.clean is not None and args.clean is True:
         clean_directory(download_dir)
         clean_directory(compressed_dir)
-
+    
     # Setup Google Drive service
     creds = authenticate_gdrive()
     service = build('drive', 'v3', credentials=creds)
@@ -39,7 +39,8 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
                         "recursive": args.recursive,
                         "pdfs_first": args.pf,
                         "recursive_depth": args.rd,
-                        "file_limit": args.number_of_files
+                        "file_limit": args.number_of_files,
+                        "upload": args.upload
                     }
         
         for folder_id in folder_ids_list:
@@ -57,14 +58,14 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
         
         # Once all files are downloaded, the 'with' block will automatically freeze the main thread 
         # and wait until the remaining background workers finish their active compressions.
-        print("\n\n⏳ All files downloaded. Waiting for background compressions and uploads to finish...")
+        print(f"\n\n⏳ All files downloaded. Waiting for background compressions {"and uploads" if args.upload else ""} to finish...")
 
     print("\n\n🎉 All operations complete!")
 
-    print_final_statistics(future_list)
+    print_final_statistics(future_list, args.upload)
 
 
-def print_final_statistics(data_list):
+def print_final_statistics(data_list, upload: bool):
     total_time = 0
     successful_compressions = 0
     successful_uploads = 0
@@ -93,10 +94,11 @@ def print_final_statistics(data_list):
 
     print("\n\n📊 --- FINAL STATISTICS ---")
     print(f"Total PDFs processed: {len(data_list)}")
-    print(f"✅ Successful compressions: {successful_compressions}")
-    print(f"❌ Failed compressions: {failed_compressions}")
-    print(f"✅ Successful uploads: {successful_uploads}")
-    print(f"❌ Failed compressions: {failed_uploads}")
+    print(f"✅🗜️ Successful compressions: {successful_compressions}")
+    print(f"❌🗜️ Failed compressions: {failed_compressions}")
+    if upload:
+        print(f"✅☁️ Successful uploads: {successful_uploads}")
+        print(f"❌☁️ Failed uploads: {failed_uploads}")
 
     if successful_compressions > 0:
         print(f"\n🕑 Total time compressing: {format_duration(total_time)}")

@@ -30,9 +30,17 @@ def setup_flags(parser: argparse.ArgumentParser):
     # -n / --number-of-files flag
     parser.add_argument("-n", "--number-of-files",
                         type=int,
-                        help="Set the amount of file that can be processed for each given folder ID. After the limit is reached the program stops processing the folder.")
+                        help="Set the amount of file that can be processed for each given folder ID. After the limit is reached "
+                        "the program stops processing the folder.")
 
     # --pf / --pdfs-first flag
     parser.add_argument('--pf', '--pdfs-first', 
                         action='store_true',
                         help="Before diving into subfolders, process all the PDF files in the current folder.")
+    
+    
+    # -u / --upload flag
+    parser.add_argument('-u', '--upload', 
+                        action='store_true',
+                        help="Uploads the compressed file to its orginal position to Google Drive. "
+                        "The script overwrites the orginal file with its compressed version, thus preserving the orginal ID.")

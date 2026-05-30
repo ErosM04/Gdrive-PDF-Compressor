@@ -21,6 +21,7 @@ def process_folder(creds, # Google credentials
                    recursive_depth=0, # Limit to subfolder tree depth that can be reached
                    pdfs_first=False, # If True process all PDF files before diving into subfolders
                    file_limit=None, # Limit of file that can be processed, None is no limit
+                   upload=False, # Whether to upload the compressed files back to Google Drive
                    start_spacing=BASE_SPACING # Amount of spacing to insert before a print
                    ):
     """Recursively processes folders to find and download PDF, then compresses them with background threads."""
@@ -74,6 +75,7 @@ def process_folder(creds, # Google credentials
                                                        recursive_depth=recursive_depth-1, # Decrease available 'dive'
                                                        pdfs_first=pdfs_first,
                                                        file_limit=file_limit,
+                                                       upload=upload,
                                                        start_spacing=start_spacing+BASE_SPACING)
                     futures.extend(subfolder_futures)
                 elif (not recursive and recursive_depth == 0): # We reached the specified depth
@@ -108,8 +110,9 @@ def process_folder(creds, # Google credentials
                 print(f"{start_spacing}  ▶️ 🔄🗜️ Pushing '{file_name}' to background compression queue...")
 
                 # Submits the function and arguments to the background thread pool, append a callback and adds the future to the list
-                future = executor.submit(background_pipeline, creds, file_path, output_path, file_id, compress_func, start_spacing)
-                future.add_done_callback(print_upload_result)
+                future = executor.submit(background_pipeline, creds, file_path, output_path, file_id, compress_func, start_spacing, upload)
+                if upload:
+                    future.add_done_callback(print_upload_result)
                 futures.append(future)
             else:
                 print(f"{start_spacing}  ▶️ Skipped compression (not a PDF): {file_name}")
@@ -123,21 +126,22 @@ def process_folder(creds, # Google credentials
     return futures
 
 
-def background_pipeline(creds, input_path, output_path, original_file_id, compress_func, start_spacing):
+def background_pipeline(creds, input_path, output_path, original_file_id, compress_func, start_spacing, upload: bool):
     """Executes the compression, and if successful, executes the upload."""
     
     result_data = compress_func(input_path, output_path, start_spacing)
     
     print_compression_result(result_data)
 
-    if result_data.compression_success:
-        print(f"\n{start_spacing}🔄☁️ Starting upload for replacement: {result_data.file_name}...")
-        upload_result = replace_file_on_drive(creds, original_file_id, output_path, result_data.file_name, start_spacing)
-        result_data.upload_success = upload_result[0] # This named parameter is dinamically added to the class
-        if not result_data.upload_success:
-            result_data.up_err_mes = upload_result[1]  # This named parameter is dinamically added to the class
-    else:
-        result_data.upload_success = False
+    if upload:
+        if result_data.compression_success:
+            print(f"\n{start_spacing}🔄☁️ Starting upload for replacement: {result_data.file_name}...")
+            upload_result = replace_file_on_drive(creds, original_file_id, output_path, result_data.file_name, start_spacing)
+            result_data.upload_success = upload_result[0] # This named parameter is dinamically added to the class
+            if not result_data.upload_success:
+                result_data.up_err_mes = upload_result[1]  # This named parameter is dinamically added to the class
+        else:
+            result_data.upload_success = False
         
     return result_data
 
