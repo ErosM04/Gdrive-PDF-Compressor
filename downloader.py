@@ -105,7 +105,7 @@ def process_folder(creds, # Google credentials
                 print()
                 
                 output_path = os.path.join(current_compressed_dir, file_name)
-                print(f"{start_spacing}  ▶️ 🔄 Pushing '{file_name}' to background compression queue...")
+                print(f"{start_spacing}  ▶️ 🔄🗜️ Pushing '{file_name}' to background compression queue...")
 
                 # Submits the function and arguments to the background thread pool, append a callback and adds the future to the list
                 future = executor.submit(background_pipeline, creds, file_path, output_path, file_id, compress_func, start_spacing)
@@ -123,7 +123,6 @@ def process_folder(creds, # Google credentials
     return futures
 
 
-# --- NEW: The glue function for the background thread ---
 def background_pipeline(creds, input_path, output_path, original_file_id, compress_func, start_spacing):
     """Executes the compression, and if successful, executes the upload."""
     
@@ -132,37 +131,36 @@ def background_pipeline(creds, input_path, output_path, original_file_id, compre
     print_compression_result(result_data)
 
     if result_data.compression_success:
-        print(f"\n{start_spacing}☁️ Starting upload for replacement: {result_data.file_name}...")
-        upload_success = replace_file_on_drive(creds, original_file_id, output_path, result_data.file_name, start_spacing)
-        result_data.upload_success = upload_success # This named parameter is dinamically added to the class
+        print(f"\n{start_spacing}🔄☁️ Starting upload for replacement: {result_data.file_name}...")
+        upload_result = replace_file_on_drive(creds, original_file_id, output_path, result_data.file_name, start_spacing)
+        result_data.upload_success = upload_result[0] # This named parameter is dinamically added to the class
+        if not result_data.upload_success:
+            result_data.up_err_mes = upload_result[1]  # This named parameter is dinamically added to the class
     else:
         result_data.upload_success = False
         
     return result_data
 
 
-# def print_processed_file_result(future):
-#     """Prints informations regarding the results of a file compression."""
-#     try:
-#         result_data = future.result()
 def print_compression_result(result_data):
     """Prints informations regarding the results of a file compression."""
     try:
         with print_lock:
             if result_data.compression_success:
-                print(f"\n{result_data.start_spacing}▶️ ✅ '{result_data.file_name}' took {format_duration(result_data.compression_duration)} to compress from {result_data.original_size}KB to {result_data.compressed_size}KB ({result_data.get_compression_percentage()}%)")
-                # up_status = "☁️ Uploaded!" if result_data.upload_success else "⚠️ Upload Failed!"
-                # print(f"\n{result_data.start_spacing}'{result_data.file_name}' update: -> {up_status}")
+                print(f"\n{result_data.start_spacing}▶️ ✅🗜️ '{result_data.file_name}' took "
+                      f"{format_duration(result_data.compression_duration)} to compress from "
+                      f"{result_data.original_size}KB to {result_data.compressed_size}KB ({result_data.get_compression_percentage()}%)")
             else:
-                print(f"\n{result_data.start_spacing}▶️ ⚠️ Background compression task failed for {result_data.file_name}: {result_data.error_message}")
+                print(f"\n{result_data.start_spacing}▶️ ⚠️🗜️ Background compression task failed "
+                      f"for {result_data.file_name}: {result_data.error_message}")
             
     except Exception as e:
         with print_lock:
-            print(f"\n{result_data.start_spacing}▶️ 🔴 Background compression thread crashed: {e}")
+            print(f"\n{result_data.start_spacing}▶️ 🔴🗜️ Background compression thread crashed: {e}")
 
 
 def print_upload_result(future):
-    """Prints informations regarding the results of a file compression."""
+    """Prints informations regarding the results of a file upload."""
     try:
         result_data = future.result()
 
@@ -170,12 +168,11 @@ def print_upload_result(future):
             if result_data.upload_success:
                 print(f"\n{result_data.start_spacing}▶️ ✅☁️ '{result_data.file_name}' sucessfully uploaded!")
             else:
-                print(f"\n{result_data.start_spacing}▶️ ✅☁️ '{result_data.file_name}' sucessfully uploaded!")
-                print(f"\n{result_data.start_spacing}▶️ ⚠️☁️ Background upload task failed for {result_data.file_name}: {result_data.error_message}")
+                print(f"\n{result_data.start_spacing}▶️ ⚠️☁️ Background upload task failed for {result_data.file_name}: {result_data.up_err_mes}")
             
     except Exception as e:
         with print_lock:
-            print(f"\n{result_data.start_spacing}▶️ 🔴 Background upload thread crashed: {e}")
+            print(f"\n{result_data.start_spacing}▶️ 🔴☁️ Background upload thread crashed: {e}")
 
 
 def sanitize_name(name):

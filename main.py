@@ -46,7 +46,7 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
             try:
                 folder_metadata = service.files().get(fileId=folder_id, fields="name").execute()
                 root_folder_name = folder_metadata.get('name', 'Unknown Folder')
-                print(f"\n\n📁 Target Google Drive Folder: '{root_folder_name}'")
+                print(f"\n\n📁 Target Google Drive Folder: {root_folder_name}")
             except Exception as e:
                 print(f"\n\n⚠️ Could not fetch folder name (check if the ID is correct). Error: {e}")
             
