@@ -3,7 +3,7 @@ import os
 
 
 def clean_directory(directory):
-        """Removes the given direcory and its content."""
+        """Removes the given directory and its content."""
         print(f"Removing '{directory}' folder...")
         
         if os.path.exists(directory):

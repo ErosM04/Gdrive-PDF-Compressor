@@ -1,5 +1,6 @@
 import argparse
 
+
 def get_args():
     """Setup and returns the command line argument parser"""
     parser = argparse.ArgumentParser(description="Download, asynchronously compress and re-upload PDFs from Google Drive folders.")

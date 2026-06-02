@@ -28,7 +28,6 @@ Python script to retrive PDF files from a Google Drive folder and then compress 
     - [X] delete compressed files right after upload with ``-dc``
 - [X] Set max amount of files, default is ♾️, otherwise ``-n [n]``
 - [X] Option to read folder ID from terminal
-- [ ] Statistics about download and upload timing
 - [X] Remove weighted avg compression time (pretty usless)
 - [X] Change default core amount with ``-t``
 

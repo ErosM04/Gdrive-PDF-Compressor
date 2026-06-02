@@ -1,8 +1,8 @@
 import os
 import io
 import re
-
 from googleapiclient.http import MediaIoBaseDownload
+
 from utils import format_duration
 from uploader import replace_file_on_drive
 from compressor import print_lock

@@ -5,6 +5,7 @@ import threading
 
 from processed_file_data import ProcessedFileData
 
+
 # A lock to prevent background threads from fucking up terminal text when printing
 print_lock = threading.Lock()
 
