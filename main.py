@@ -1,8 +1,8 @@
 import os
-# from random import random
 import json
 from concurrent.futures import ThreadPoolExecutor
 from googleapiclient.discovery import build
+import random
 
 from auth import authenticate_gdrive
 from downloader import process_folder
@@ -107,6 +107,9 @@ def print_final_statistics(data_list, upload: bool):
         print(f"⚖️📉 Normalized weighted average compressed size: {(w_total_compression / weights_sum):.2f}%")
     else:
         print("\n😢 No files were successfully compressed.")
+        if(random.randint(1, 100) <= 5):
+            print("No PDF-files, Jeffry is sad 😢")
+
 
 
 def read_folders_ids(location):
