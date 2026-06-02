@@ -1,39 +1,83 @@
 # Gdrive-PDF-Compressor
-Python script to retrive PDF files from Google Drive folders, compress them with Ghostscript and re-upload them back to Google Drive. 
+Python script to retrive PDF files from Google Drive folders, compress them with Ghostscript and re-upload them back to Google Drive.
+
+> [!NOTE]
+This script and its guide were created and tested only on a Windows system, so they probably won't work on other systems. 
 
 
 ## Index
 1. [Setup](#setup)
-    - 1.1 [Python](#python)
+    - 1.1 [Download **GDrive-PDF-Compressor**](#download-gdrive-pdf-compressor)
+    - 1.2 [Python](#python)
+    - 1.3 [GhostScript](#ghostscript)
+    - 1.4 [Google Cloud project](#google-cloud-project)
 2. [How To Use](#how-to-use)
 3. [Common Errors]()
 
 
 ## Setup
-The following procedure is only for Windows desktops.
+
+
+### Download GDrive-PDF-Compressor
+Download this Python project either by clicking on ``Code > Download ZIP`` (then extract the content) or if you have **Git** installed on your terminal run:
+```shell
+git clone https://github.com/ErosM04/Gdrive-PDF-Compressor.git
+```
+You can move the **GDrive-PDF-Compressor** folder wherever you want.
+
 
 ### Python
-Start by installing Python from the [website:snake:](https://www.python.org/downloads/) or by using your local package manager.
-Then open the terminal and paste the following command:
-
+Then installing Python from the [website](https://www.python.org/downloads/):snake: or by using your local package manager.
+Then open the terminal and run the following command:
 ```shell
 python --version
 ```
 
-If you get prompted with an error, instead of the version, go to ``Modify System Enviroment Variables > Enviroment Variables > PATH`` then add the following lines:
+If you get prompted with an error, instead of the version, go to ``Modify System Enviroment Variables > Enviroment Variables > PATH`` then, one by one, add the following lines:
 ```shell
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\Scripts\
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\
 C:\Users\{username}\AppData\Local\Programs\Python\Launcher\
 ```
-Then save
+Then save and reopen the terminal to verify the command works.
+
+
+### GhostScript
+Install the compression tool [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html) and again go to ``Modify System Enviroment Variables > Enviroment Variables > PATH`` and add the following line:
+```shell
+C:\Program Files\gs\gs10.07.1\bin
+```
+Note that this path may vary if you changed it during the GhostScript installation.
+
+Then close and reopen the terminal and run the following command:
+```shell
+gswin64c --version
+```
+If you get prompted with the Ghostcript version it is installed and properly working for our use case. Eventually you can try with ``gs --version``.
+
+
+### Google Cloud project
+Open the terminal and update pip (Python package manager) by running:
+```shell
+python.exe -m pip install --upgrade pip
+```
+Then install the Google OAuth libraries by running:
+```shell
+pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
+```
+
+> [!WARNING]
+You need to prove to Google that you are at least 18 to perform the following step.
+
+Go to the [Google Cloud Console](https://console.cloud.google.com/) and login with the same Google account linked with the Google Drive files you want to compress.
+
+Then:
+1. Create a new project and enable the **Google Drive API**. 
+2. From the right panel go to ``APIs & Services > Credentials`` and create **OAuth client ID** credentials (choose **"Desktop app"**).
+3. Download the JSON file, rename it to ``credentials.json`` and place it in the **GDrive-PDF-Compressor** folder.
 
 
 ## How To Use
-
-## Steps
-- Do ``python.exe -m pip install --upgrade pip`` then ``pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib``
-- Install [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html)
 
 
 ## Important stuff
