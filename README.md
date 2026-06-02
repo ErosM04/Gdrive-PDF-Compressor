@@ -30,7 +30,7 @@ Python script to retrive PDF files from a Google Drive folder and then compress 
 - [X] Option to read folder ID from terminal
 - [ ] Statistics about download and upload timing
 - [X] Remove weighted avg compression time (pretty usless)
-- [ ] Change default core amount with ``-c``
+- [X] Change default core amount with ``-t``
 
 Add this:
 ``"Grab this from the URL of your Google Drive folder

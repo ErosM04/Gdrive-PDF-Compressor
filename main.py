@@ -28,7 +28,7 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
     
     # Set up the Thread Pool
     # max_workers is the number of background threads, 4 is generally safe for most CPUs.
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=args.thread_count) as executor:
         params = { # Creates parameters for process_folder()
                         "creds": creds,
                         "service": service, 

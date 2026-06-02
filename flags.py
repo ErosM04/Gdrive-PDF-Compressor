@@ -69,3 +69,10 @@ def setup_flags(parser: argparse.ArgumentParser):
                         help="Deletes all compressed files after successfully completing the upload. "
                         "This will work only if the upload is enabled (with '-u'). "
                         "If any compression or upload fails no file will be eliminated.")
+    
+    # -t / --thread-count flag
+    parser.add_argument('-t', '--thread-count',
+                        type=int,
+                        default=4,
+                        help="Set the amount of cores (each managing a different thread) to use for asynchronous compression and upload. "
+                        "The default value is 4 as it is safe for most CPUs (in order not to overload them)")
