@@ -172,4 +172,10 @@ def read_folders_ids(location):
 
 
 if __name__ == '__main__': # Avoids to run the script when file is imported as module
-    main(read_folders_ids(FOLDER_IDS_LOCATION), args=get_args())
+    args=get_args()
+    
+    if args.folder_id:
+        main([args.folder_id], args=args)
+    else:
+        print("No ID provided in terminal. Reading from file...\n")
+        main(read_folders_ids(FOLDER_IDS_LOCATION), args=args)

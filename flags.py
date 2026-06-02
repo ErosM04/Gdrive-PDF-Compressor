@@ -2,7 +2,7 @@ import argparse
 
 def get_args():
     """Setup and returns the command line argument parser"""
-    parser = argparse.ArgumentParser(description="Download, compress and re-upload PDFs from Google Drive folders.")
+    parser = argparse.ArgumentParser(description="Download, asynchronously compress and re-upload PDFs from Google Drive folders.")
 
     setup_flags(parser)
 
@@ -12,6 +12,12 @@ def get_args():
 def setup_flags(parser: argparse.ArgumentParser):
     """Setup all the flags for the script arguments. Can be listed with '--help'."""
     
+    # positional argument for folder ID
+    parser.add_argument('folder_id',
+                        nargs='?', # '1' = One, '?' = One ore None.
+                        default=None, 
+                        help="The Google Drive folder ID. If omitted, reads from the default file ('folder_ids.json').")
+
     # -c / --clean flag
     parser.add_argument('-c', '--clean', 
                         action='store_true', # treats the argument as a boolean itself, or the command to run the script would be: "py .\main.py -r True" 
@@ -23,7 +29,7 @@ def setup_flags(parser: argparse.ArgumentParser):
                         help="Recursively search and download files from all subfolders.")
    
     # --rd / --recursive-depth flag
-    parser.add_argument("--rd", "--recursive-depth", 
+    parser.add_argument('--rd', '--recursive-depth', 
                         type=int,
                         help="Recursively search and download files from all subfolders with given depth.")
     
@@ -39,7 +45,7 @@ def setup_flags(parser: argparse.ArgumentParser):
                         help="Before diving into subfolders, process all the PDF files in the current folder.")
 
     # -n / --number-of-files flag
-    parser.add_argument("-n", "--number-of-files",
+    parser.add_argument('-n', '--number-of-files',
                         type=int,
                         help="Set the amount of file that can be processed for each given folder ID. After the limit is reached "
                         "the program stops processing the folder.")
