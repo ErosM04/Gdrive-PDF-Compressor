@@ -43,3 +43,23 @@ def setup_flags(parser: argparse.ArgumentParser):
                         type=int,
                         help="Set the amount of file that can be processed for each given folder ID. After the limit is reached "
                         "the program stops processing the folder.")
+    
+    # -d / --delete flag
+    parser.add_argument('-d', '--delete', 
+                        action='store_true',
+                        help="Deletes all downloaded and compressed files after successfully completing the upload. "
+                        "This will work only if the upload is enabled (with '-u'). "
+                        "If any compression or upload fails no file will be eliminated.")
+    
+    # -dd / --delete-downloads flag
+    parser.add_argument('-dd', '--delete-downloads', 
+                        action='store_true',
+                        help="Deletes all downloaded files after successfully completing the compression or the upload. "
+                        "If any compression or upload fails no file will be eliminated.")
+    
+    # -dc / --delete-compressed flag
+    parser.add_argument('-dc', '--delete-compressed', 
+                        action='store_true',
+                        help="Deletes all compressed files after successfully completing the upload. "
+                        "This will work only if the upload is enabled (with '-u'). "
+                        "If any compression or upload fails no file will be eliminated.")

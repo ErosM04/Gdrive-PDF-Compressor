@@ -60,9 +60,41 @@ def main(folder_ids_list, args, download_dir="downloads", compressed_dir="compre
         # and wait until the remaining background workers finish their active compressions and uploads.
         print(f"\n\n⏳ All files downloaded. Waiting for background compressions {"and uploads" if args.upload else ""} to finish...")
 
-    print("\n\n🎉 All operations complete!")
+    print("\n\n🎉 All operations complete!\n")
+
+    if (args.delete or args.delete_downloads or args.delete_compressed):
+        delete_folders_at_end(future_list, download_dir, compressed_dir, args.delete, args.delete_downloads, args.delete_compressed, args.upload)
 
     print_final_statistics(future_list, args.upload)
+
+
+def delete_folders_at_end(list,
+                          download_dir, 
+                          compressed_dir, 
+                          delete: bool, # If all the folder must be deleted
+                          delete_d: bool, # If only the download folder must be deleted
+                          delete_c: bool, # If only the compressed folder must be deleted
+                          upload: bool, # If the upload is enabled
+                          ):
+    """Deletes the downloads and compressed folders based on the given parameters"""
+    fail_comp = False
+    fail_up = False
+    for element in list:
+        res = element.result()
+        if res.compression_success is False:
+            fail_comp = True
+        if upload and getattr(res, 'upload_success', False) is False:
+            fail_up = True
+        if (fail_comp and upload is False) or (fail_comp and fail_up):
+            break
+    
+    if delete and upload and not fail_comp and not fail_up:
+        clean_directory(download_dir)
+        clean_directory(compressed_dir)
+    elif delete_d and not fail_comp and (not upload or (upload and not fail_up)):
+        clean_directory(download_dir)
+    elif delete_c and upload and not fail_comp and not fail_up:
+        clean_directory(compressed_dir)
 
 
 def print_final_statistics(data_list, upload: bool):
@@ -85,10 +117,11 @@ def print_final_statistics(data_list, upload: bool):
             w_total_compression += result_data.get_compression_percentage() * result_data.compressed_size # value * weighted
             weights_sum += result_data.compressed_size
 
-            if getattr(result_data, 'upload_success', False): # Get named (dinamically created) attribute of the given class
-                successful_uploads += 1
-            else:
-                failed_uploads += 1
+            if upload:
+                if getattr(result_data, 'upload_success', False): # Get named (dinamically created) attribute of the given class
+                    successful_uploads += 1
+                else:
+                    failed_uploads += 1
         else:
             failed_compressions += 1
 

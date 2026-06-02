@@ -2,6 +2,11 @@
 Python script to retrive PDF files from a Google Drive folder and then compress them with Ghostscript
 
 
+## Steps
+- Do ``python.exe -m pip install --upgrade pip`` then ``pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib``
+- Install [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html)
+
+
 ## Important stuff
 - If you get prompted with **Request** problems just delete ``token.json``. This happens because the Google Cloud project has the OAuth consent screen set to **"Testing"** mode, meaning it automatically expires after 7 days. To fix this permanently go to the ``Google Cloud Console > Navigate to APIs & Services > OAuth consent`` screen and click ``Publish App`` under ``Publishing status`` to push it to production. (Since it's just a local desktop script, it won't actually be published to the public or require a Google review).
 - If the scipt prompts an error while trying to fetch the files it's probably because you didn't enable the **Google Drive API** on your Google Cloud prject. Just click the link in the error and it will open a web page to enable the API, just click ``Enable``. Than (as the error says) wait a few minutes for the change to be propageted on all the Google's servers.
@@ -18,9 +23,9 @@ Python script to retrive PDF files from a Google Drive folder and then compress 
     - [X] use ``--rd [n]`` where n is a prameter used to specify the max depth of the subfolders tree, e.g. n=3 opens up to 3 consecutive subfolders
 - [X] Process files first, then folders with ``--pf``
 - [X] Re-upload once the compression is completed with ``-u``
-- [ ] Delete downloaded and compressed files right after upload with ``-d``
-    - [ ] delete downloaded files right after compression with ``-dd``
-    - [ ] delete compressed files right after upload with ``-dc``
+- [X] Delete downloaded and compressed files right after upload with ``-d``
+    - [X] delete downloaded files right after compression with ``-dd``
+    - [X] delete compressed files right after upload with ``-dc``
 - [X] Set max amount of files, default is ♾️, otherwise ``-n [n]``
 - [ ] Option to read list of folder IDs from terminal args with ``-i`` o ``--ids``
 - [ ] Statistics about download and upload timing
