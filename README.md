@@ -1,6 +1,35 @@
 # Gdrive-PDF-Compressor
-Python script to retrive PDF files from a Google Drive folder and then compress them with Ghostscript
+Python script to retrive PDF files from Google Drive folders, compress them with Ghostscript and re-upload them back to Google Drive. 
 
+
+## Index
+1. [Setup](#setup)
+    - 1.1 [Python](#python)
+2. [How To Use](#how-to-use)
+3. [Common Errors]()
+
+
+## Setup
+The following procedure is only for Windows desktops.
+
+### Python
+Start by installing Python from the [website:snake:](https://www.python.org/downloads/) or by using your local package manager.
+Then open the terminal and paste the following command:
+
+```shell
+python --version
+```
+
+If you get prompted with an error, instead of the version, go to ``Modify System Enviroment Variables > Enviroment Variables > PATH`` then add the following lines:
+```shell
+C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\Scripts\
+C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\
+C:\Users\{username}\AppData\Local\Programs\Python\Launcher\
+```
+Then save
+
+
+## How To Use
 
 ## Steps
 - Do ``python.exe -m pip install --upgrade pip`` then ``pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib``
