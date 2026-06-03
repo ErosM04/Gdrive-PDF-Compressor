@@ -67,17 +67,19 @@ pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
 
 > [!WARNING]
-You need to prove to Google that you are at least 18 to perform the following step.
+You need have a 18+ Google Account to perform the following step.
 
 Go to the [Google Cloud Console](https://console.cloud.google.com/) and login with the same Google account linked with the Google Drive files you want to compress.
 
 Then:
-1. Create a new project and enable the **Google Drive API**. 
-2. From the right panel go to ``APIs & Services > Credentials`` and create **OAuth client ID** credentials (choose **"Desktop app"**).
-3. Download the JSON file, rename it to ``credentials.json`` and place it in the **GDrive-PDF-Compressor** folder.
+1. Create a new project.
+2. Go to ``APIs & Services > Library``, search for **"Google Drive API"**, select it and click Enable.
+3. From the right panel go to ``APIs & Services > Credentials`` and create **OAuth client ID** credentials (choose **"Desktop app"**).
+4. Download the JSON file, rename it to ``credentials.json`` and place it in the **GDrive-PDF-Compressor** folder.
 
 
 ## How To Use
+
 
 
 ## Important stuff
