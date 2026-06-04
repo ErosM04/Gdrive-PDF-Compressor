@@ -87,7 +87,7 @@ Then:
 ### Provide the folder IDs
 To use the script you first need to get the Google Drive folder ID. To get it just open your Google Drive folder on your browser and copy the number contained at the end of the URL.
 
-Example: If URL is https://drive.google.com/drive/folders/1A2Bv3C4dz5E6F, the ID is **1A2Bv3C4dz5E6F**
+Example: If URL is https://drive.google.com/drive/folders/1A2Bv3C4dz5E6F, the ID is **``1A2Bv3C4dz5E6F``**.
 
 To provide the folder ID to the script you have 2 ways:
 1. Passing it as a parameter when you run the script, e.g.:
@@ -95,6 +95,7 @@ To provide the folder ID to the script you have 2 ways:
     py .\main.py 1A2Bv3C4dz5E6F
     ```
     Note: This won't just provide the ID to the scipt, it will also run it.
+
 2. Passing more than one ID by creating a file in the **GFrive-PDF-Compressor** folder called ``folder_ids.json`` with the following structure:
     ```json
     {
@@ -114,7 +115,7 @@ To finally run the script open the terminal, move to the **GFrive-PDF-Compressor
 py .\main.py 1A2Bv3C4dz5E6F
 ```
 
-You can also active various functions using the parameters, to list them just run:
+You can also active various functions using the parameters. To list them just run:
 ```shell
 py .\main.py --help
 ```
