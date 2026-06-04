@@ -76,4 +76,4 @@ def setup_flags(parser: argparse.ArgumentParser):
                         type=int,
                         default=4,
                         help="Set the amount of cores (each managing a different thread) to use for asynchronous compression and upload. "
-                        "The default value is 4 as it is safe for most CPUs (in order not to overload them)")
+                        "The default value is 4 as it is safe for most CPUs (in order not to overload them).")
