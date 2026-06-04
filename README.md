@@ -33,7 +33,7 @@ Then open the terminal and run the following command:
 python --version
 ```
 
-If you get prompted with an error, instead of the version, go to ``Modify System Enviroment Variables > Enviroment Variables > PATH`` then, one by one, add the following lines:
+If you get prompted with an error, instead of the version, go to ``Modify System Environment Variables > Environment Variables > PATH`` then, one by one, add the following lines:
 ```shell
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\Scripts\
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\
@@ -43,7 +43,7 @@ Then save and reopen the terminal to verify the command works.
 
 
 ### GhostScript
-Install the compression tool [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html) and again go to ``Modify System Enviroment Variables > Enviroment Variables > PATH`` and add the following line:
+Install the compression tool [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html) and again go to ``Modify System Environment Variables > Environment Variables > PATH`` and add the following line:
 ```shell
 C:\Program Files\gs\gs10.07.1\bin
 ```
@@ -73,14 +73,17 @@ Go to the [Google Cloud Console](https://console.cloud.google.com/) and login wi
 
 Then:
 1. Create a new project.
-2. Go to ``APIs & Services > Library``, search for **"Google Drive API"**, select it and click Enable.
-3. From the right panel go to ``APIs & Services > Credentials`` and create **OAuth client ID** credentials (choose **"Desktop app"**).
+2. From the right panel go to ``APIs & Services > Library``, search for **"Google Drive API"**, select it and click **Enable**.
+3. Go to ``APIs & Services > Credentials`` and create **OAuth client ID** credentials (choose **"Desktop app"**).
 4. Download the JSON file, rename it to ``credentials.json`` and place it in the **GDrive-PDF-Compressor** folder.
 
 
 ## How To Use
+To use the 
 
-
+Add this:
+``"Grab this from the URL of your Google Drive folder
+Example: If URL is https://drive.google.com/drive/folders/1A2B3C4D5E6F, the ID is 1A2B3C4D5E6F"``
 
 ## Important stuff
 - If you get prompted with **Request** problems just delete ``token.json``. This happens because the Google Cloud project has the OAuth consent screen set to **"Testing"** mode, meaning it automatically expires after 7 days. To fix this permanently go to the ``Google Cloud Console > Navigate to APIs & Services > OAuth consent`` screen and click ``Publish App`` under ``Publishing status`` to push it to production. (Since it's just a local desktop script, it won't actually be published to the public or require a Google review).
@@ -105,7 +108,3 @@ Then:
 - [X] Option to read folder ID from terminal
 - [X] Remove weighted avg compression time (pretty usless)
 - [X] Change default core amount with ``-t``
-
-Add this:
-``"Grab this from the URL of your Google Drive folder
-Example: If URL is https://drive.google.com/drive/folders/1A2B3C4D5E6F, the ID is 1A2B3C4D5E6F"``
