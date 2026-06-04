@@ -12,7 +12,10 @@ This script and its guide were created and tested only on a Windows system, so t
     - 1.3 [GhostScript](#ghostscript)
     - 1.4 [Google Cloud project](#google-cloud-project)
 2. [How To Use](#how-to-use)
-3. [Common Errors]()
+    - 2.1 [Provide the folder IDs](#provide-the-folder-ids)
+    - 2.2 [Run the script](#run-the-script)
+    - 2.3 [Examples](#examples)
+3. [Common Errors](#common-errors)
 
 
 ## Setup
@@ -79,13 +82,61 @@ Then:
 
 
 ## How To Use
-To use the 
 
-Add this:
-``"Grab this from the URL of your Google Drive folder
-Example: If URL is https://drive.google.com/drive/folders/1A2B3C4D5E6F, the ID is 1A2B3C4D5E6F"``
 
-## Important stuff
+### Provide the folder IDs
+To use the script you first need to get the Google Drive folder ID. To get it just open your Google Drive folder on your browser and copy the number contained at the end of the URL.
+
+Example: If URL is https://drive.google.com/drive/folders/1A2Bv3C4dz5E6F, the ID is **1A2Bv3C4dz5E6F**
+
+To provide the folder ID to the script you have 2 ways:
+1. Passing it as a parameter when you run the script, e.g.:
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F
+    ```
+    Note: This won't just provide the ID to the scipt, it will also run it.
+2. Passing more than one ID by creating a file in the **GFrive-PDF-Compressor** folder called ``folder_ids.json`` with the following structure:
+    ```json
+    {
+        "ids": [
+            "1A2Bv3C4dz5E6F",
+            "1A5Pv6tDFqfSMP",
+            "1A50XbuVv6tvwB"
+        ]
+    }
+    ```
+    Note: If you already specified the ID in the command, the IDs in the file won't be used.
+
+
+### Run the script
+To finally run the script open the terminal, move to the **GFrive-PDF-Compressor** folder and run (don't insert the ID if you want to use the ID file):
+```shell
+py .\main.py 1A2Bv3C4dz5E6F
+```
+
+You can also active various functions using the parameters, to list them just run:
+```shell
+py .\main.py --help
+```
+
+This are the parameters:
+- ``-c``, ``--clean``: Delete the existing ``downloads`` and ``compressed`` folder before starting.
+- ``-r``, ``--recursive``: Recursively search and download files from all subfolders.
+- ``--rd``, ``--recursive-depth`` ``RD``: Recursively search and download files from all subfolders with given depth (``RD``).
+- ``-u``, ``--upload``: Uploads the compressed file to its orginal position to Google Drive. The script overwrites the orginal file with its compressed version, thus preserving the orginal ID.
+- ``--pf``, ``--pdfs-first``: Before diving into subfolders, process all the PDF files in the current folder.
+- ``-n``, ``--number-of-files`` ``NUMBER_OF_FILES``: Set the amount of file that can be processed (``NUMBER_OF_FILES``) for each given folder ID. After the limit is reached the program stops processing the folder.
+- ``-d``, ``--delete``: Deletes all downloaded and compressed files after successfully completing the upload. This will work only if the upload is enabled (with ``-u``). If any compression or upload fails no file will be eliminated.
+- ``-dd``, ``--delete-downloads``: Deletes all downloaded files after successfully completing the compression or the upload. If any compression or upload fails no file will be eliminated.
+- ``-dc``, ``--delete-compressed``: Deletes all compressed files after successfully completing the upload. This will work only if the upload is enabled (with ``-u``). If any compression or upload fails no file will be eliminated.
+- ``-t``, ``--thread-count`` ``THREAD_COUNT``: Set the amount of cores (``THREAD_COUNT``) to use (each managing a different thread) for asynchronous compression and upload. The default value is 4 as it is safe for most CPUs (in order not to overload them).
+
+
+### Examples
+...
+
+
+## Common Errors
 - If you get prompted with **Request** problems just delete ``token.json``. This happens because the Google Cloud project has the OAuth consent screen set to **"Testing"** mode, meaning it automatically expires after 7 days. To fix this permanently go to the ``Google Cloud Console > Navigate to APIs & Services > OAuth consent`` screen and click ``Publish App`` under ``Publishing status`` to push it to production. (Since it's just a local desktop script, it won't actually be published to the public or require a Google review).
 - If the scipt prompts an error while trying to fetch the files it's probably because you didn't enable the **Google Drive API** on your Google Cloud prject. Just click the link in the error and it will open a web page to enable the API, just click ``Enable``. Than (as the error says) wait a few minutes for the change to be propageted on all the Google's servers.
 - In the ``compress_pdf_ghostscript`` the command ``gswin64c`` works on Windows, otherwise you may need to change the string to ``gs``.
