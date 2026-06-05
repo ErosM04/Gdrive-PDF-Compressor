@@ -72,7 +72,7 @@ pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
 
 > [!WARNING]
-You must use a 18+ Google Account to perform the following step.
+You must use a **18+** Google Account to perform the following step.
 
 Go to the [Google Cloud Console](https://console.cloud.google.com/) and login with the same Google account linked with the Google Drive files you want to compress.
 
@@ -195,7 +195,3 @@ Here are some common errors that can occur during the execution:
     ```
 
 - If the ``downloads`` and ``compressed`` folders in the **GDrive-PDF-Compressor** directory are causing any problems remove them manually or by running the script with the ``-r`` parameter.
-
-
-## TODO
-- [ ] Test ``-c`` without starting folders
