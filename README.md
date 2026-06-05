@@ -23,7 +23,7 @@ This script and its guide were created and tested only on a Windows system, so t
 
 ### Download GDrive-PDF-Compressor
 Download this Python project either by clicking on ``Code > Download ZIP`` (then extract the content) or if you have **Git** installed on your terminal run:
-```bash
+```shell
 git clone https://github.com/ErosM04/Gdrive-PDF-Compressor.git
 ```
 You can move the **GDrive-PDF-Compressor** folder wherever you want.
@@ -37,7 +37,7 @@ python --version
 ```
 
 If you get prompted with an error, instead of the version, go to ``Modify System Environment Variables > Environment Variables > PATH`` then, one by one, add the following lines:
-```shell
+```
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\Scripts\
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\
 C:\Users\{username}\AppData\Local\Programs\Python\Launcher\
@@ -47,7 +47,7 @@ Then save and reopen the terminal to verify the command works.
 
 ### GhostScript
 Install the compression tool [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html) and again go to ``Modify System Environment Variables > Environment Variables > PATH`` and add the following line:
-```shell
+```
 C:\Program Files\gs\gs10.07.1\bin
 ```
 Note that this path may vary if you changed it during the GhostScript installation.
@@ -136,7 +136,7 @@ This are the parameters:
 ### Examples
 Here are some examples to better understand how to use the script:
 - Download and compress all the files in the given folder, plus all the files contained in the subfolders: 
-    ```shell
+    ```powershell
     py .\main.py 1A2Bv3C4dz5E6F -r
     ```
 
