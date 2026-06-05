@@ -23,7 +23,7 @@ This script and its guide were created and tested only on a Windows system, so t
 
 ### Download GDrive-PDF-Compressor
 Download this Python project either by clicking on ``Code > Download ZIP`` (then extract the content) or if you have **Git** installed on your terminal run:
-```shell
+```powershell
 git clone https://github.com/ErosM04/Gdrive-PDF-Compressor.git
 ```
 You can move the **GDrive-PDF-Compressor** folder wherever you want.
@@ -134,7 +134,11 @@ This are the parameters:
 
 
 ### Examples
-...
+Here are some examples to better understand how to use the script:
+- Download and compress all the files in the given folder, plus all the files contained in the subfolders: 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F -r
+    ```
 
 
 ## Common Errors
