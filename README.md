@@ -1,18 +1,20 @@
 # Gdrive-PDF-Compressor
 Python script to retrive PDF files from Google Drive folders, compress them with Ghostscript and re-upload them back to Google Drive.
 
+The upload functionality (if used) will override the content of the original Google Drive PDF with the content of its compressed version, thus preserving the original ID.
+
 > [!NOTE]
 This script and its guide were created and tested only on a Windows system, so they probably won't work on other systems. 
 
 
 ## Index
 1. [Setup](#setup)
-    - 1.1 [Download **GDrive-PDF-Compressor**](#download-gdrive-pdf-compressor)
+    - 1.1 [**GDrive-PDF-Compressor**](#gdrive-pdf-compressor-1)
     - 1.2 [Python](#python)
     - 1.3 [GhostScript](#ghostscript)
     - 1.4 [Google Cloud project](#google-cloud-project)
 2. [How To Use](#how-to-use)
-    - 2.1 [Provide the folder IDs](#provide-the-folder-ids)
+    - 2.1 [Provide the folders IDs](#provide-the-folders-ids)
     - 2.2 [Run the script](#run-the-script)
     - 2.3 [Examples](#examples)
 3. [Common Errors](#common-errors)
@@ -21,7 +23,7 @@ This script and its guide were created and tested only on a Windows system, so t
 ## Setup
 
 
-### Download GDrive-PDF-Compressor
+### GDrive-PDF-Compressor
 Download this Python project either by clicking on ``Code > Download ZIP`` (then extract the content) or if you have **Git** installed on your terminal run:
 ```shell
 git clone https://github.com/ErosM04/Gdrive-PDF-Compressor.git
@@ -30,25 +32,25 @@ You can move the **GDrive-PDF-Compressor** folder wherever you want.
 
 
 ### Python
-Then installing Python from the [website](https://www.python.org/downloads/):snake: or by using your local package manager.
+Install Python from the [website](https://www.python.org/downloads/):snake: or by using your local package manager.
 Then open the terminal and run the following command:
 ```shell
 python --version
 ```
 
-If you get prompted with an error, instead of the version, go to ``Modify System Environment Variables > Environment Variables > PATH`` then, one by one, add the following lines:
+If you get prompted with an error, instead of the version, go to ``Modify System Environment Variables > Environment Variables > PATH`` then, one by one, add the following lines (change {username} and {version} with yours):
 ```
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\Scripts\
 C:\Users\{username}\AppData\Local\Programs\Python\Python{version}\
 C:\Users\{username}\AppData\Local\Programs\Python\Launcher\
 ```
-Then save and reopen the terminal to verify the command works.
+Then save and reopen the terminal to verify that the command works.
 
 
 ### GhostScript
-Install the compression tool [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html) and again go to ``Modify System Environment Variables > Environment Variables > PATH`` and add the following line:
+Install the compression tool [GhostScript AGPL](https://ghostscript.com/releases/gsdnld.html) and then go to ``Modify System Environment Variables > Environment Variables > PATH`` and add the following line:
 ```
-C:\Program Files\gs\gs10.07.1\bin
+C:\Program Files\gs\gs{version}\bin
 ```
 Note that this path may vary if you changed it during the GhostScript installation.
 
@@ -84,7 +86,7 @@ Then:
 ## How To Use
 
 
-### Provide the folder IDs
+### Provide the folders IDs
 To use the script you first need to get the Google Drive folder ID. To get it just open your Google Drive folder on your browser and copy the number contained at the end of the URL.
 
 Example: If URL is https://drive.google.com/drive/folders/1A2Bv3C4dz5E6F, the ID is **``1A2Bv3C4dz5E6F``**.
@@ -106,18 +108,18 @@ To provide the folder ID to the script you have 2 ways:
         ]
     }
     ```
-    Note: If you already specified the ID in the command, the IDs in the file won't be used.
+    Note: If you already specified an ID in the command, the IDs contained in the file won't be used.
 
 
 ### Run the script
-To finally run the script open the terminal, move to the **GFrive-PDF-Compressor** folder and run (don't insert the ID if you want to use the ID file):
+To finally run the script open the terminal, move to the **GFrive-PDF-Compressor** folder and run the following command (don't insert the ID if you want to use the ``folder_ids.json`` file):
 ```shell
 py .\main.py 1A2Bv3C4dz5E6F
 ```
 
 If any error shows up I suggest you to check [Common Erros](#common-errors) for a solution. 
 
-You can also active various functions using the parameters. To list them just run:
+You can also use various functions by adding the parameters to the command. To list them just run:
 ```shell
 py .\main.py --help
 ```
@@ -151,7 +153,7 @@ Here are some examples to better understand how to use the script:
     ```shell
     py .\main.py 1A2Bv3C4dz5E6F -c -r
     ```
-- Remove the previously downloaded and compressed files and then download and compress all the files in the given folder, plus all the files contained in the subfolders, but it won't open more then 3 subfolders sequentially (``StartingFolder > SubF1 > SubF2 > SubF3``): 
+- Remove the previously downloaded and compressed files and then download and compress all the files in the given folder, plus all the files contained in the subfolders, but it won't open more then 3 subfolders sequentially (e.g.: ``StartingFolder > SubF1 > SubF2 > SubF3``): 
     ```shell
     py .\main.py 1A2Bv3C4dz5E6F -c --rd 3
     ```
@@ -159,7 +161,8 @@ Here are some examples to better understand how to use the script:
     ```shell
     py .\main.py 1A2Bv3C4dz5E6F -c -r -u
     ```
-    > [!WARNING] The ``-u`` parameter will override the orginal PDF files in Google Drive, ensure the level of compression used by the script won't make the smaller text unreadable. You can always find the original files in the ``downloads`` folder (in the **GDrive-PDF-Compresor** directory), unless you run the script with the ``-d`` or ``-dd`` parameters.
+    > [!WARNING] 
+    The ``-u`` parameter will override the orginal PDF files in Google Drive, ensure the level of compression used by the script won't make the smaller text unreadable. You can always find the original files in the ``downloads`` folder (in the **GDrive-PDF-Compresor** directory), unless you run the script with the ``-d`` or ``-dd`` parameters.
 
 - Same as before but don't process more than 10 PDFs and for every folder process all the PDFs fist and then open the subfolders: 
     ```shell
