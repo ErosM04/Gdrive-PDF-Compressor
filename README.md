@@ -72,7 +72,7 @@ pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
 
 > [!WARNING]
-You need have a 18+ Google Account to perform the following step.
+You must use a 18+ Google Account to perform the following step.
 
 Go to the [Google Cloud Console](https://console.cloud.google.com/) and login with the same Google account linked with the Google Drive files you want to compress.
 
@@ -161,8 +161,8 @@ Here are some examples to better understand how to use the script:
     ```shell
     py .\main.py 1A2Bv3C4dz5E6F -c -r -u
     ```
-    > [!WARNING] 
-    The ``-u`` parameter will override the orginal PDF files in Google Drive, ensure the level of compression used by the script won't make the smaller text unreadable. You can always find the original files in the ``downloads`` folder (in the **GDrive-PDF-Compresor** directory), unless you run the script with the ``-d`` or ``-dd`` parameters.
+> [!WARNING] 
+The ``-u`` parameter will override the orginal PDF files in Google Drive, ensure the level of compression used by the script won't make the smaller text unreadable. You can always find the original files in the ``downloads`` folder (in the **GDrive-PDF-Compresor** directory), unless you run the script with the ``-d`` or ``-dd`` parameters.
 
 - Same as before but don't process more than 10 PDFs and for every folder process all the PDFs fist and then open the subfolders: 
     ```shell
