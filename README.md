@@ -1,5 +1,5 @@
 # Gdrive-PDF-Compressor
-Python script to retrive PDF files from Google Drive folders, compress them with Ghostscript and re-upload them back to Google Drive.
+Python script to retrieve PDF files from Google Drive folders, compress them with [GhostScript](https://www.ghostscript.com/) and re-upload them back to Google Drive.
 
 The upload functionality (if used) will override the content of the original Google Drive PDF with the content of its compressed version, thus preserving the original ID.
 
