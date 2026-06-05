@@ -56,7 +56,7 @@ Then close and reopen the terminal and run the following command:
 ```shell
 gswin64c --version
 ```
-If you get prompted with the Ghostcript version it is installed and properly working for our use case. Eventually you can try with ``gs --version``.
+If you get prompted with the Ghostcript version it is installed and properly working for our use case. Eventually you can try with ``gs --version``. If this is the case you may need to change the command used by the script, see [Common Errors](#common-errors).
 
 
 ### Google Cloud project
@@ -115,6 +115,8 @@ To finally run the script open the terminal, move to the **GFrive-PDF-Compressor
 py .\main.py 1A2Bv3C4dz5E6F
 ```
 
+If any error shows up I suggest you to check [Common Erros](#common-errors) for a solution. 
+
 You can also active various functions using the parameters. To list them just run:
 ```shell
 py .\main.py --help
@@ -135,32 +137,62 @@ This are the parameters:
 
 ### Examples
 Here are some examples to better understand how to use the script:
+- Download and compress all the (PDF) files in the given folder: 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F
+    ```
 - Download and compress all the files in the given folder, plus all the files contained in the subfolders: 
-    ```powershell
+    ```shell
     py .\main.py 1A2Bv3C4dz5E6F -r
+    ```
+    If you use the recurse functionality avoid inserting in ``folder_ids.json`` a folder that is already a subfolder of another one you inserted (in ``folder_ids.json``) or you will process the same files 2 times. 
+
+- Remove the previously downloaded and compressed files and then download and compress all the files in the given folder, plus all the files contained in the subfolders: 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F -c -r
+    ```
+- Remove the previously downloaded and compressed files and then download and compress all the files in the given folder, plus all the files contained in the subfolders, but it won't open more then 3 subfolders sequentially (``StartingFolder > SubF1 > SubF2 > SubF3``): 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F -c --rd 3
+    ```
+- Remove the previously downloaded and compressed files and then download, compress and upload all the files in the given folder (and subfolders): 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F -c -r -u
+    ```
+    > [!WARNING] The ``-u`` parameter will override the orginal PDF files in Google Drive, ensure the level of compression used by the script won't make the smaller text unreadable. You can always find the original files in the ``downloads`` folder (in the **GDrive-PDF-Compresor** directory), unless you run the script with the ``-d`` or ``-dd`` parameters.
+
+- Same as before but don't process more than 10 PDFs and for every folder process all the PDFs fist and then open the subfolders: 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F -c -r -u -n 10 --pf
+    ```
+- Remove the previously downloaded and compressed files and download, compress and upload all the files in the given folder (and subfolders), then delete all the downloaded and compressed files: 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F -c -r -u -d
+    ```
+- Remove the previously downloaded and compressed files and then download and compress all the files in the given folder (and subfolders) using 6 threads for the asynchronous compression: 
+    ```shell
+    py .\main.py 1A2Bv3C4dz5E6F -c -r -t 6
     ```
 
 
 ## Common Errors
-- If you get prompted with **Request** problems just delete ``token.json``. This happens because the Google Cloud project has the OAuth consent screen set to **"Testing"** mode, meaning it automatically expires after 7 days. To fix this permanently go to the ``Google Cloud Console > Navigate to APIs & Services > OAuth consent`` screen and click ``Publish App`` under ``Publishing status`` to push it to production. (Since it's just a local desktop script, it won't actually be published to the public or require a Google review).
-- If the scipt prompts an error while trying to fetch the files it's probably because you didn't enable the **Google Drive API** on your Google Cloud prject. Just click the link in the error and it will open a web page to enable the API, just click ``Enable``. Than (as the error says) wait a few minutes for the change to be propageted on all the Google's servers.
-- In the ``compress_pdf_ghostscript`` the command ``gswin64c`` works on Windows, otherwise you may need to change the string to ``gs``.
-- Clean ``downloads`` and ``compressed`` before running to avoid errors.
-- If you use the recurse functionality don't avoid inserting in folder_ids a folder that is already a subfolder of another id you inserted.
+Here are some common errors that can occur during the execution:
+
+- If you get prompted with a **Request** related error just delete the ``token.json`` file. This happens because the Google Cloud project has the OAuth consent screen set to **"Testing"** mode, meaning it automatically expires after 7 days. To fix this permanently go to the ``Google Cloud Console > Navigate to APIs & Services > OAuth consent`` screen and click ``Publish App`` under ``Publishing status`` to push it to production. (Since it's just a local desktop script, it won't actually be published to the public or require a Google review).
+
+- If the scipt prompts an error while trying to fetch the files from Google Drive it's probably because you didn't enable the **Google Drive API** on your Google Cloud prject. Just click the link in the error and it will open a web page to enable the API, just click ``Enable``. Then (as the error says) wait a few minutes for the change to be propageted on all the Google's servers.
+
+- If ``gswin64c`` is not recognized as a command, ensure the GhostScript setup is correct ([here](#ghostscript)). Alternatively your system may not use ``gswin64c`` as command to run GhostScript, thus you need to change the following line in ``compressor.py``:
+    ```python
+    ghostscript_cmd = "gswin64c"
+    ```
+    To:
+    ```python
+    ghostscript_cmd = "gs"
+    ```
+
+- If the ``downloads`` and ``compressed`` folders in the **GDrive-PDF-Compressor** directory are causing any problems remove them manually or by running the script with the ``-r`` parameter.
 
 
 ## TODO
-- [X] Clean download and compressed folders with ``-c``
-- [X] Asynchronous download and compression
-- [X] Recursive search: explore folders in current directory
-    - [X] use ``-r`` to specify recurse until bottom of subfolders tree
-    - [X] use ``--rd [n]`` where n is a prameter used to specify the max depth of the subfolders tree, e.g. n=3 opens up to 3 consecutive subfolders
-- [X] Process files first, then folders with ``--pf``
-- [X] Re-upload once the compression is completed with ``-u``
-- [X] Delete downloaded and compressed files right after upload with ``-d``
-    - [X] delete downloaded files right after compression with ``-dd``
-    - [X] delete compressed files right after upload with ``-dc``
-- [X] Set max amount of files, default is ♾️, otherwise ``-n [n]``
-- [X] Option to read folder ID from terminal
-- [X] Remove weighted avg compression time (pretty usless)
-- [X] Change default core amount with ``-t``
+- [ ] Test ``-c`` without starting folders
