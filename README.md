@@ -23,7 +23,7 @@ This script and its guide were created and tested only on a Windows system, so t
 
 ### Download GDrive-PDF-Compressor
 Download this Python project either by clicking on ``Code > Download ZIP`` (then extract the content) or if you have **Git** installed on your terminal run:
-```powershell
+```bash
 git clone https://github.com/ErosM04/Gdrive-PDF-Compressor.git
 ```
 You can move the **GDrive-PDF-Compressor** folder wherever you want.
